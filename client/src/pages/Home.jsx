@@ -228,36 +228,36 @@ export default function Home() {
   const pick = (idx) => { setActiveQ(idx); setSim(true); setTimeout(() => setSim(false), 500); };
 
   return (
-    <div className="min-h-screen bg-[#0a0b0f] text-slate-100 overflow-x-hidden" style={{ fontFamily:"'Plus Jakarta Sans', sans-serif" }}>
+    <div className="min-h-screen bg-[#10131a] text-[#f7f2ea] overflow-x-hidden" style={{ fontFamily:"'Plus Jakarta Sans', sans-serif" }}>
 
       {/* ══════════════════════════════════════════
           FLOATING NAVBAR
       ══════════════════════════════════════════ */}
       <header className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 pt-4">
         <nav className="max-w-7xl mx-auto rounded-2xl px-6 py-3.5 flex items-center justify-between"
-          style={{ background:'rgba(8,10,18,0.88)', backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.07)', boxShadow:'0 20px 60px rgba(0,0,0,0.5)' }}>
+          style={{ background:'rgba(20, 23, 33, 0.88)', backdropFilter:'blur(24px)', border:'1px solid rgba(217, 180, 130, 0.22)', boxShadow:'0 20px 60px rgba(0,0,0,0.6)' }}>
           <Link to="/" className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background:'linear-gradient(135deg,#2563eb,#06b6d4)' }}>
-              <Sparkles className="text-white" size={17}/>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-md" style={{ background:'linear-gradient(135deg, #d9b482, #c4975f, #8c6032)' }}>
+              <Sparkles className="text-[#14110d]" size={17}/>
             </div>
-            <span className="font-extrabold text-white text-sm tracking-tight">DocuSync AI</span>
+            <span className="font-extrabold text-[#faf6ef] text-sm tracking-tight">DocuSync AI</span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-7 text-xs font-medium text-slate-400">
-            <a href="#features" className="hover:text-white transition-colors">Platform</a>
-            <a href="#products" className="hover:text-white transition-colors">Products</a>
-            <a href="#demo"     className="hover:text-white transition-colors">Live Demo</a>
-            <a href="#stats"    className="hover:text-white transition-colors">Enterprise</a>
+          <div className="hidden md:flex items-center gap-7 text-xs font-medium text-[#b8a692]">
+            <a href="#features" className="hover:text-[#faf6ef] transition-colors">Platform</a>
+            <a href="#products" className="hover:text-[#faf6ef] transition-colors">Products</a>
+            <a href="#demo"     className="hover:text-[#faf6ef] transition-colors">Live Demo</a>
+            <a href="#stats"    className="hover:text-[#faf6ef] transition-colors">Enterprise</a>
           </div>
 
           <div className="flex items-center gap-3">
             <Link to="/login"
-              className="text-xs font-semibold text-slate-300 hover:text-white px-4 py-2 rounded-xl transition-colors">
+              className="text-xs font-semibold text-[#eedfc8] hover:text-white px-4 py-2 rounded-xl transition-colors">
               Sign In
             </Link>
             <Link to="/register"
-              className="px-4 py-2 rounded-xl text-xs font-bold text-white flex items-center gap-1.5 hover:scale-105 transition-transform"
-              style={{ background:'linear-gradient(90deg,#2563eb,#06b6d4)', boxShadow:'0 0 25px rgba(37,99,235,0.4)' }}>
+              className="px-4 py-2 rounded-xl text-xs font-bold text-[#14110d] flex items-center gap-1.5 hover:scale-105 transition-transform shadow-lg"
+              style={{ background:'linear-gradient(90deg, #d9b482, #f5e4cc, #c4975f)', boxShadow:'0 0 25px rgba(217, 180, 130, 0.35)' }}>
               Get Started <ArrowRight size={13}/>
             </Link>
           </div>
@@ -287,34 +287,34 @@ export default function Home() {
 
         {/* Hero content */}
         <div className="relative z-[5] text-center max-w-4xl mx-auto px-4 pt-28 pb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-8 text-xs font-semibold text-cyan-300"
-            style={{ background:'rgba(6,182,212,0.1)', border:'1px solid rgba(6,182,212,0.3)' }}>
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"/>
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-8 text-xs font-semibold text-[#f5e4cc]"
+            style={{ background:'rgba(217,180,130,0.15)', border:'1px solid rgba(217,180,130,0.3)' }}>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#d9b482] animate-pulse"/>
             ENTERPRISE AI · GEMINI 2.0 RAG ENGINE · LIVE
           </div>
 
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold leading-[1.05] tracking-tight text-white mb-6">
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold leading-[1.05] tracking-tight text-[#faf6ef] mb-6">
             Your company's memory,<br/>
-            <span className="block mt-1" style={{ fontFamily:'Georgia,serif', fontStyle:'italic', fontWeight:400, background:'linear-gradient(90deg,#93c5fd,#818cf8,#67e8f9)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
+            <span className="block mt-1" style={{ fontFamily:'Georgia,serif', fontStyle:'italic', fontWeight:400, background:'linear-gradient(90deg, #f5e4cc, #d9b482, #eedfc8)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
               finally searchable.
             </span>
           </h1>
 
-          <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed">
+          <p className="text-base sm:text-lg text-[#c4b5a3] max-w-2xl mx-auto mb-10 leading-relaxed">
             DocuSync AI turns siloed HR manuals, legal policies, and architecture docs into one verified copilot.
-            <span className="text-white font-semibold"> Every answer cites its exact source.</span>
+            <span className="text-[#faf6ef] font-semibold"> Every answer cites its exact source.</span>
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link to="/chat"
-              className="w-full sm:w-auto px-8 py-4 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 hover:scale-105 transition-transform"
-              style={{ background:'linear-gradient(90deg,#2563eb,#4f46e5,#06b6d4)', boxShadow:'0 0 40px rgba(37,99,235,0.5)', border:'1px solid rgba(255,255,255,0.15)' }}>
+              className="w-full sm:w-auto px-8 py-4 rounded-xl text-sm font-bold text-[#14110d] flex items-center justify-center gap-2 hover:scale-105 transition-transform shadow-xl"
+              style={{ background:'linear-gradient(90deg, #d9b482, #f5e4cc, #c4975f)', boxShadow:'0 0 40px rgba(217,180,130,0.45)' }}>
               <Bot size={16}/> Engage AI Copilot
             </Link>
             <button onClick={() => setVideoOpen(true)}
-              className="w-full sm:w-auto px-8 py-4 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 hover:scale-105 transition-transform"
-              style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', backdropFilter:'blur(10px)' }}>
-              <Play size={14} className="text-cyan-300"/> Watch Platform Tour
+              className="w-full sm:w-auto px-8 py-4 rounded-xl text-sm font-semibold text-[#eedfc8] flex items-center justify-center gap-2 hover:scale-105 transition-transform"
+              style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(217,180,130,0.25)', backdropFilter:'blur(10px)' }}>
+              <Play size={14} className="text-[#d9b482]"/> Watch Platform Tour
             </button>
           </div>
 
@@ -592,13 +592,13 @@ export default function Home() {
           <p className="text-slate-300 text-sm mb-10 leading-relaxed">Join 127+ enterprise institutions already using DocuSync AI to eliminate knowledge silos.</p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link to="/register"
-              className="px-8 py-4 rounded-xl text-sm font-bold text-white hover:scale-105 transition-transform"
-              style={{ background:'linear-gradient(90deg,#2563eb,#06b6d4)', boxShadow:'0 0 40px rgba(37,99,235,0.5)', border:'1px solid rgba(255,255,255,0.15)' }}>
+              className="px-8 py-4 rounded-xl text-sm font-bold text-[#14110d] hover:scale-105 transition-transform shadow-xl"
+              style={{ background:'linear-gradient(90deg, #d9b482, #f5e4cc, #c4975f)', boxShadow:'0 0 40px rgba(217,180,130,0.4)' }}>
               Start Free Trial
             </Link>
             <Link to="/dashboard"
-              className="px-8 py-4 rounded-xl text-sm font-semibold text-white hover:scale-105 transition-transform"
-              style={{ background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.15)', backdropFilter:'blur(12px)' }}>
+              className="px-8 py-4 rounded-xl text-sm font-semibold text-[#eedfc8] hover:scale-105 transition-transform"
+              style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(217,180,130,0.25)', backdropFilter:'blur(12px)' }}>
               View Dashboard →
             </Link>
           </div>

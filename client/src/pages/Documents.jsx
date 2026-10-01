@@ -15,7 +15,10 @@ import {
   FolderOpen,
   Building2,
   BookOpen,
-  Sparkles
+  Sparkles,
+  ArrowRight,
+  Database,
+  ExternalLink
 } from 'lucide-react';
 
 const DEPARTMENTS = ['All', 'HR', 'Engineering', 'Sales', 'Legal'];
@@ -73,103 +76,87 @@ const Documents = () => {
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
+    setTimeout(() => setToast(null), 3500);
   };
 
-  // GET /api/documents on mount
-  const fetchDocuments = async () => {
-    setLoading(true);
-    try {
-      const res = await client.get('/api/documents');
-      const docs = Array.isArray(res.data) ? res.data : (res.data?.documents || []);
-      if (docs.length > 0) {
-        setDocuments(docs);
-      } else {
-        const localSaved = localStorage.getItem('docusync_documents');
-        if (localSaved) {
-          setDocuments(JSON.parse(localSaved));
+  // GET /api/documents
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        setLoading(true);
+        const res = await client.get('/api/documents');
+        const docs = Array.isArray(res.data) ? res.data : (res.data?.documents || []);
+        if (docs.length > 0) {
+          setDocuments(docs);
+          localStorage.setItem('docusync_documents', JSON.stringify(docs));
         } else {
-          setDocuments(DEFAULT_DOCUMENTS);
-          localStorage.setItem('docusync_documents', JSON.stringify(DEFAULT_DOCUMENTS));
+          loadSavedOrDefaults();
         }
+      } catch (err) {
+        console.warn('Backend unavailable, loading local documents cache:', err);
+        loadSavedOrDefaults();
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.warn('Backend GET /api/documents fallback to local storage:', err);
-      const localSaved = localStorage.getItem('docusync_documents');
-      if (localSaved) {
-        setDocuments(JSON.parse(localSaved));
+    };
+
+    const loadSavedOrDefaults = () => {
+      const saved = localStorage.getItem('docusync_documents');
+      if (saved) {
+        setDocuments(JSON.parse(saved));
       } else {
         setDocuments(DEFAULT_DOCUMENTS);
         localStorage.setItem('docusync_documents', JSON.stringify(DEFAULT_DOCUMENTS));
       }
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  useEffect(() => {
     fetchDocuments();
   }, []);
 
-  // POST /api/documents on submission
-  const handleSubmit = async (e) => {
+  // POST /api/documents
+  const handleCreateDocument = async (e) => {
     e.preventDefault();
     if (!formTitle.trim() || !formContent.trim()) {
-      showToast('Document title and text content are required', 'error');
+      showToast('Title and content are required', 'error');
       return;
     }
 
     setSubmitting(true);
-    const tagsArray = formTags
-      .split(',')
-      .map((t) => t.trim())
-      .filter((t) => t.length > 0);
-
-    const payload = {
+    const newDoc = {
+      id: 'doc-' + Date.now(),
       title: formTitle.trim(),
       department: formDept,
-      tags: tagsArray.length > 0 ? tagsArray : ['Enterprise'],
+      tags: formTags.split(',').map((t) => t.trim()).filter(Boolean),
       content: formContent.trim(),
+      createdAt: new Date().toISOString()
     };
 
     try {
-      const res = await client.post('/api/documents', payload);
-      const createdDoc = res.data?.document || res.data || {
-        ...payload,
-        id: 'doc-' + Date.now(),
-        createdAt: new Date().toISOString()
-      };
-      
-      const updated = [createdDoc, ...documents];
+      const res = await client.post('/api/documents', newDoc);
+      const savedDoc = res.data?.document || newDoc;
+      const updated = [savedDoc, ...documents];
       setDocuments(updated);
       localStorage.setItem('docusync_documents', JSON.stringify(updated));
-      showToast('Document indexed into knowledge base!', 'success');
-      
-      setFormTitle('');
-      setFormDept('Engineering');
-      setFormTags('');
-      setFormContent('');
-      setIsModalOpen(false);
+      showToast('Document successfully indexed in vector store!', 'success');
+      resetModal();
     } catch (err) {
-      console.warn('Backend POST /api/documents fallback to local sync:', err);
-      const mockDoc = {
-        ...payload,
-        id: 'doc-' + Date.now(),
-        createdAt: new Date().toISOString()
-      };
-      const updated = [mockDoc, ...documents];
+      console.warn('Backend POST fallback to local store:', err);
+      const updated = [newDoc, ...documents];
       setDocuments(updated);
       localStorage.setItem('docusync_documents', JSON.stringify(updated));
-      showToast('Document saved to Knowledge Base!', 'success');
-      
-      setFormTitle('');
-      setFormDept('Engineering');
-      setFormTags('');
-      setFormContent('');
-      setIsModalOpen(false);
+      showToast('Document stored locally in offline mode', 'success');
+      resetModal();
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const resetModal = () => {
+    setFormTitle('');
+    setFormDept('Engineering');
+    setFormTags('');
+    setFormContent('');
+    setIsModalOpen(false);
   };
 
   // DELETE /api/documents/:id
@@ -204,15 +191,15 @@ const Documents = () => {
   const getDeptColor = (dept) => {
     switch (dept?.toLowerCase()) {
       case 'engineering':
-        return 'text-cyan-400 bg-cyan-950/60 border-cyan-800/60';
+        return 'text-[#38bdf8] bg-sky-950/40 border-sky-800/40';
       case 'hr':
-        return 'text-purple-400 bg-purple-950/60 border-purple-800/60';
+        return 'text-[#c084fc] bg-purple-950/40 border-purple-800/40';
       case 'sales':
-        return 'text-emerald-400 bg-emerald-950/60 border-emerald-800/60';
+        return 'text-[#34d399] bg-emerald-950/40 border-emerald-800/40';
       case 'legal':
-        return 'text-amber-400 bg-amber-950/60 border-amber-800/60';
+        return 'text-[#d9b482] bg-amber-950/40 border-amber-800/40';
       default:
-        return 'text-blue-400 bg-blue-950/60 border-blue-800/60';
+        return 'text-[#d9b482] bg-amber-950/40 border-amber-800/40';
     }
   };
 
@@ -230,178 +217,199 @@ const Documents = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-y-auto">
+    <div className="flex-1 flex flex-col h-full overflow-y-auto text-[#f7f2ea]">
       {/* Toast Alert */}
       {toast && (
         <div className={`fixed top-5 right-5 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-2xl border text-xs font-semibold backdrop-blur-md animate-fade-in ${
           toast.type === 'error'
-            ? 'bg-red-950/90 border-red-800 text-red-200'
-            : 'bg-emerald-950/90 border-emerald-800 text-emerald-200'
+            ? 'bg-rose-950/90 border-rose-800/80 text-rose-200'
+            : 'bg-emerald-950/90 border-emerald-800/80 text-emerald-200'
         }`}>
-          {toast.type === 'error' ? <AlertCircle className="w-4 h-4 text-red-400 shrink-0" /> : <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />}
+          {toast.type === 'error' ? <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" /> : <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />}
           <span>{toast.message}</span>
         </div>
       )}
 
       {/* Top Controls Header */}
-      <div className="bg-slate-900/40 border-b border-slate-800/80 px-8 py-6 backdrop-blur-md">
+      <div
+        className="px-8 py-6 backdrop-blur-md border-b"
+        style={{
+          background: 'rgba(20, 23, 33, 0.75)',
+          borderColor: 'rgba(217, 180, 130, 0.18)',
+        }}
+      >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-blue-400" />
-              Organizational Knowledge Base
+            <h1 className="text-xl font-bold text-[#faf6ef] tracking-tight flex items-center gap-2.5">
+              <BookOpen className="w-5 h-5 text-[#d9b482]" />
+              <span>Organizational Knowledge Base</span>
             </h1>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-[#b8a692] mt-1">
               Browse, search, and ingest company documents for grounded AI Copilot retrieval
             </p>
           </div>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-blue-600/25 transition cursor-pointer self-start sm:self-auto"
+            className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-[#14110d] rounded-xl shadow-lg transition cursor-pointer self-start sm:self-auto hover:scale-105"
+            style={{
+              background: 'linear-gradient(90deg, #d9b482, #f5e4cc, #c4975f)',
+              boxShadow: '0 0 25px rgba(217, 180, 130, 0.35)',
+            }}
           >
             <Plus className="w-4 h-4" />
-            Upload Document
+            <span>Ingest Document</span>
           </button>
         </div>
 
-        {/* Filter and Search Bar */}
-        <div className="mt-5 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
-            <input
-              type="text"
-              placeholder="Search documents by title, content, or tag..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-slate-950/60 border border-slate-800 rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-            />
-          </div>
-
-          {/* Department Filter tabs */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+        {/* Filter bar and search input */}
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mt-6">
+          {/* Department filter tabs */}
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-black/40 border border-[#d9b482]/20 overflow-x-auto">
             {DEPARTMENTS.map((dept) => (
               <button
                 key={dept}
                 onClick={() => setSelectedDept(dept)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition cursor-pointer shrink-0 ${
-                  selectedDept === dept
-                    ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/20'
-                    : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:text-white hover:bg-slate-800/80'
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer whitespace-nowrap ${
+                  selectedDept.toLowerCase() === dept.toLowerCase()
+                    ? 'bg-gradient-to-r from-[#d9b482] to-[#c4975f] text-[#14110d] font-bold shadow'
+                    : 'text-[#c4b5a3] hover:text-[#fff0dc] hover:bg-white/[0.04]'
                 }`}
               >
-                {dept}
+                {dept === 'All' ? 'All Departments' : dept}
               </button>
             ))}
+          </div>
+
+          {/* Search box */}
+          <div className="relative min-w-[280px]">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8c7b69]" />
+            <input
+              type="text"
+              placeholder="Search title, content, or tags..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 text-xs text-[#faf6ef] placeholder-[#7d6f5e] rounded-xl outline-none transition"
+              style={{
+                background: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid rgba(217, 180, 130, 0.2)',
+              }}
+              onFocus={(e) => (e.target.style.borderColor = 'rgba(217, 180, 130, 0.6)')}
+              onBlur={(e) => (e.target.style.borderColor = 'rgba(217, 180, 130, 0.2)')}
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8c7b69] hover:text-[#faf6ef]"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         </div>
       </div>
 
       {/* Main Content Area */}
-      <div className="p-8 flex-1">
+      <div className="p-8">
         {loading ? (
-          /* Loading State: Skeleton shimmer cards */
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {[1, 2, 3].map((n) => (
-              <div key={n} className="rounded-2xl bg-slate-900/40 border border-slate-800/60 p-5 space-y-4 animate-pulse">
-                <div className="flex justify-between items-center">
-                  <div className="h-4 bg-slate-800 rounded w-1/4"></div>
-                  <div className="h-3 bg-slate-800 rounded w-1/5"></div>
-                </div>
-                <div className="h-5 bg-slate-800 rounded w-3/4"></div>
-                <div className="space-y-2">
-                  <div className="h-3 bg-slate-800/60 rounded w-full"></div>
-                  <div className="h-3 bg-slate-800/60 rounded w-5/6"></div>
-                </div>
-                <div className="flex gap-2">
-                  <div className="h-4 bg-slate-800 rounded w-12"></div>
-                  <div className="h-4 bg-slate-800 rounded w-16"></div>
-                </div>
-              </div>
-            ))}
+          <div className="py-20 flex flex-col items-center justify-center space-y-3">
+            <div className="w-8 h-8 border-2 border-[#d9b482] border-t-transparent rounded-full animate-spin" />
+            <p className="text-xs text-[#b8a692] font-mono">Synchronizing knowledge vector store...</p>
           </div>
         ) : filteredDocs.length === 0 ? (
-          /* Empty State Illustration */
-          <div className="h-96 flex flex-col items-center justify-center text-center p-8 rounded-2xl bg-slate-900/30 border border-dashed border-slate-800">
-            <div className="w-16 h-16 rounded-2xl bg-blue-600/10 border border-blue-500/20 text-blue-400 flex items-center justify-center mb-4">
-              <FolderOpen className="w-8 h-8" />
-            </div>
-            <h3 className="text-base font-bold text-white">No documents found</h3>
-            <p className="text-xs text-slate-400 max-w-sm mt-1.5 mb-5 leading-relaxed">
-              {searchQuery || selectedDept !== 'All'
-                ? "No matching enterprise documents found for the active filter. Try resetting your search."
-                : "Your knowledge base is empty. Upload company handbooks, compliance policies, or architectural standards to start."}
+          <div
+            className="py-16 px-6 text-center rounded-2xl max-w-lg mx-auto"
+            style={{
+              background: 'rgba(20, 23, 33, 0.75)',
+              border: '1px dashed rgba(217, 180, 130, 0.3)',
+            }}
+          >
+            <FolderOpen className="w-12 h-12 text-[#d9b482] mx-auto mb-3 opacity-60" />
+            <h3 className="text-sm font-bold text-[#faf6ef] mb-1">No documents matched</h3>
+            <p className="text-xs text-[#b8a692] mb-5">
+              {searchQuery
+                ? `No documents found matching "${searchQuery}". Try changing filters.`
+                : 'No documents exist in this department scope yet.'}
             </p>
             <button
-              onClick={() => {
-                if (searchQuery || selectedDept !== 'All') {
-                  setSearchQuery('');
-                  setSelectedDept('All');
-                } else {
-                  setIsModalOpen(true);
-                }
-              }}
-              className="px-4 py-2 text-xs font-semibold rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30 hover:bg-blue-600/30 transition cursor-pointer"
+              onClick={() => setIsModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-[#14110d] rounded-xl cursor-pointer hover:scale-105 transition"
+              style={{ background: 'linear-gradient(90deg, #d9b482, #f5e4cc)' }}
             >
-              {searchQuery || selectedDept !== 'All' ? 'Reset Filters' : 'Add First Document'}
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add First Document</span>
             </button>
           </div>
         ) : (
-          /* Document Grid */
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredDocs.map((doc) => (
               <div
                 key={doc.id}
-                className="rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-lg hover:border-slate-700 transition flex flex-col justify-between overflow-hidden group backdrop-blur-md"
+                className="rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl group"
+                style={{
+                  background: 'rgba(20, 23, 33, 0.85)',
+                  border: '1px solid rgba(217, 180, 130, 0.2)',
+                  backdropFilter: 'blur(16px)',
+                }}
               >
-                <div className="p-5">
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <span className={`text-[11px] px-2 py-0.5 rounded-md border font-semibold ${getDeptColor(doc.department)}`}>
+                <div>
+                  {/* Top Bar: Dept + Delete */}
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <span
+                      className={`text-[10px] font-mono px-2 py-0.5 rounded-md border font-semibold ${getDeptColor(
+                        doc.department
+                      )}`}
+                    >
                       {doc.department}
                     </span>
-                    <span className="text-[11px] text-slate-500 flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      {formatDate(doc.createdAt)}
-                    </span>
+                    <button
+                      onClick={() => handleDelete(doc.id, doc.title)}
+                      className="opacity-0 group-hover:opacity-100 p-1.5 text-[#8c7b69] hover:text-rose-400 rounded-lg hover:bg-rose-950/30 transition cursor-pointer"
+                      title="Delete document"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
 
-                  <h3 className="text-sm font-bold text-white group-hover:text-blue-400 transition leading-snug mb-2">
+                  {/* Title */}
+                  <h3 className="text-sm font-bold text-[#faf6ef] group-hover:text-[#ffdca8] transition-colors line-clamp-2 mb-2 leading-snug">
                     {doc.title}
                   </h3>
 
-                  <p className="text-xs text-slate-400 line-clamp-3 leading-relaxed mb-4">
+                  {/* Snippet preview */}
+                  <p className="text-xs text-[#b8a692] line-clamp-3 leading-relaxed mb-4">
                     {doc.content}
                   </p>
+                </div>
 
+                <div>
                   {/* Tags */}
                   {doc.tags && doc.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-auto">
-                      {doc.tags.map((tag, idx) => (
+                    <div className="flex flex-wrap gap-1.5 mb-3">
+                      {doc.tags.map((t, idx) => (
                         <span
                           key={idx}
-                          className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md bg-slate-950/70 text-slate-400 border border-slate-800/80 font-medium"
+                          className="text-[10px] px-2 py-0.5 rounded bg-black/40 text-[#c4b5a3] border border-[#d9b482]/15 font-mono"
                         >
-                          <Tag className="w-2.5 h-2.5" />
-                          {tag}
+                          #{t}
                         </span>
                       ))}
                     </div>
                   )}
-                </div>
 
-                {/* Footer action bar */}
-                <div className="px-5 py-3 bg-slate-950/60 border-t border-slate-800/80 flex items-center justify-between">
-                  <span className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 text-cyan-400" />
-                    Indexed for RAG Grounding
-                  </span>
-                  <button
-                    onClick={() => handleDelete(doc.id, doc.title)}
-                    className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-red-400 font-medium transition cursor-pointer p-1 rounded-lg hover:bg-red-950/30"
-                    title="Delete document"
+                  {/* Metadata Footer */}
+                  <div
+                    className="pt-3 border-t flex items-center justify-between text-[11px] text-[#8c7b69]"
+                    style={{ borderColor: 'rgba(217, 180, 130, 0.12)' }}
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>Delete</span>
-                  </button>
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      {formatDate(doc.createdAt)}
+                    </span>
+                    <span className="font-mono text-[10px] text-[#34d399] flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#34d399]" />
+                      Vector Ready
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
@@ -409,104 +417,141 @@ const Documents = () => {
         )}
       </div>
 
-      {/* Upload Document Modal */}
+      {/* Ingest Document Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-lg w-full border border-slate-800 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 py-5 border-b border-slate-800 flex items-center justify-between">
-              <div>
-                <h3 className="text-base font-bold text-white">Upload Knowledge Document</h3>
-                <p className="text-xs text-slate-400 mt-0.5">Ingest company text for grounded AI Copilot answers</p>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(0, 0, 0, 0.8)', backdropFilter: 'blur(8px)' }}
+          onClick={resetModal}
+        >
+          <div
+            className="w-full max-w-lg rounded-2xl p-6 relative overflow-hidden shadow-2xl"
+            style={{
+              background: 'rgba(20, 23, 33, 0.95)',
+              border: '1px solid rgba(217, 180, 130, 0.3)',
+              backdropFilter: 'blur(20px)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-4 border-b border-[#d9b482]/15 mb-5">
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-[#d9b482]" />
+                <h3 className="text-base font-bold text-[#faf6ef]">Ingest Enterprise Document</h3>
               </div>
               <button
-                onClick={() => setIsModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                onClick={resetModal}
+                className="p-1 rounded-lg text-[#8c7b69] hover:text-[#faf6ef] hover:bg-white/5 transition"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleCreateDocument} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                  Document Title <span className="text-red-400">*</span>
+                <label className="block text-[11px] font-mono font-semibold uppercase text-[#cfbda9] mb-1.5">
+                  Document Title *
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Employee Handbook 2026 or API Architecture Spec"
+                  placeholder="e.g. AWS Security Baseline 2026"
                   value={formTitle}
                   onChange={(e) => setFormTitle(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3.5 py-2.5 text-xs text-[#faf6ef] placeholder-[#7d6f5e] rounded-xl outline-none"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.04)',
+                    border: '1px solid rgba(217, 180, 130, 0.2)',
+                  }}
+                  onFocus={(e) => (e.target.style.borderColor = 'rgba(217, 180, 130, 0.6)')}
+                  onBlur={(e) => (e.target.style.borderColor = 'rgba(217, 180, 130, 0.2)')}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                    Department Category
+                  <label className="block text-[11px] font-mono font-semibold uppercase text-[#cfbda9] mb-1.5">
+                    Department *
                   </label>
                   <select
                     value={formDept}
                     onChange={(e) => setFormDept(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 text-xs text-[#faf6ef] rounded-xl outline-none"
+                    style={{
+                      background: 'rgba(16, 18, 25, 0.95)',
+                      border: '1px solid rgba(217, 180, 130, 0.2)',
+                    }}
                   >
-                    {DEPARTMENTS.filter((d) => d !== 'All').map((dept) => (
-                      <option key={dept} value={dept} className="bg-slate-900 text-white">
-                        {dept}
-                      </option>
-                    ))}
+                    <option value="Engineering">Engineering</option>
+                    <option value="HR">HR</option>
+                    <option value="Sales">Sales</option>
+                    <option value="Legal">Legal</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                    Tags (comma separated)
+                  <label className="block text-[11px] font-mono font-semibold uppercase text-[#cfbda9] mb-1.5">
+                    Tags (comma-separated)
                   </label>
                   <input
                     type="text"
-                    placeholder="Security, SOC2, Cloud"
+                    placeholder="EKS, Security, Policy"
                     value={formTags}
                     onChange={(e) => setFormTags(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3.5 py-2.5 text-xs text-[#faf6ef] placeholder-[#7d6f5e] rounded-xl outline-none"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.04)',
+                      border: '1px solid rgba(217, 180, 130, 0.2)',
+                    }}
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                  Text Content <span className="text-red-400">*</span>
+                <label className="block text-[11px] font-mono font-semibold uppercase text-[#cfbda9] mb-1.5">
+                  Document Content (Vector Text) *
                 </label>
                 <textarea
                   required
                   rows={5}
-                  placeholder="Paste or write the document text content here. The AI Copilot will ground its responses in this knowledge..."
+                  placeholder="Paste complete policy text, architectural specifications, or operational instructions..."
                   value={formContent}
                   onChange={(e) => setFormContent(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none leading-relaxed"
-                ></textarea>
+                  className="w-full p-3.5 text-xs text-[#faf6ef] placeholder-[#7d6f5e] rounded-xl outline-none leading-relaxed resize-none"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.04)',
+                    border: '1px solid rgba(217, 180, 130, 0.2)',
+                  }}
+                  onFocus={(e) => (e.target.style.borderColor = 'rgba(217, 180, 130, 0.6)')}
+                  onBlur={(e) => (e.target.style.borderColor = 'rgba(217, 180, 130, 0.2)')}
+                />
               </div>
 
-              <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-800">
+              <div className="pt-2 flex items-center justify-end gap-3">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition cursor-pointer"
+                  onClick={resetModal}
+                  className="px-4 py-2 text-xs font-semibold text-[#b8a692] hover:text-[#faf6ef] transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-blue-600/25 transition disabled:opacity-60 cursor-pointer flex items-center gap-2"
+                  className="px-5 py-2.5 rounded-xl text-xs font-bold text-[#14110d] flex items-center gap-2 hover:scale-105 transition shadow-lg disabled:opacity-60 cursor-pointer"
+                  style={{
+                    background: 'linear-gradient(90deg, #d9b482, #f5e4cc, #c4975f)',
+                  }}
                 >
                   {submitting ? (
                     <>
-                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Indexing...
+                      <span className="w-3 h-3 border-2 border-[#14110d] border-t-transparent rounded-full animate-spin" />
+                      Ingesting into Vector Store...
                     </>
                   ) : (
-                    'Index Document'
+                    <>
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Ingest Document</span>
+                    </>
                   )}
                 </button>
               </div>
