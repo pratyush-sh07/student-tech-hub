@@ -190,7 +190,9 @@ export default function Login() {
 
             {/* Demo quick-access */}
             <div className="mt-6 pt-5 border-t" style={{ borderColor:'rgba(255,255,255,0.07)' }}>
-              <p className="text-center text-[11px] font-mono text-slate-500 mb-3">Hackathon Quick Access</p>
+              <p className="text-center text-[12px] font-semibold tracking-wide mb-3 bg-gradient-to-r from-amber-300 via-orange-400 to-rose-400 bg-clip-text text-transparent">
+                Welcome to the world of enterprise
+              </p>
               <div className="grid grid-cols-2 gap-2">
                 {[
                   ['Engineering', 'text-cyan-300'],
