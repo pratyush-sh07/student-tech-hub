@@ -17,20 +17,28 @@ const CosmicCanvas = () => {
     };
     window.addEventListener('resize', handleResize);
 
-    // Particle nodes
-    const particleCount = Math.floor(Math.min(width, 1400) / 18);
+    // Particle nodes - Cosmic stars with warm gold, champagne, and star-white
+    const particleCount = Math.floor(Math.min(width, 1400) / 14);
     const particles = [];
-    const colors = ['rgba(59, 130, 246, ', 'rgba(99, 102, 241, ', 'rgba(6, 182, 212, ', 'rgba(168, 85, 247, '];
+    const colors = [
+      'rgba(245, 230, 211, ', // warm champagne star
+      'rgba(217, 180, 130, ', // golden sand / warm beige
+      'rgba(251, 191, 36, ',  // amber cosmic glow
+      'rgba(226, 232, 240, ', // star diamond white
+      'rgba(147, 197, 253, ', // soft celestial blue
+    ];
 
     for (let i = 0; i < particleCount; i++) {
       particles.push({
         x: Math.random() * width,
         y: Math.random() * height,
-        radius: Math.random() * 1.6 + 0.4,
-        vx: (Math.random() - 0.5) * 0.35,
-        vy: (Math.random() - 0.5) * 0.35,
+        radius: Math.random() * 1.8 + 0.4,
+        twinkleSpeed: Math.random() * 0.03 + 0.01,
+        twinkleOffset: Math.random() * Math.PI * 2,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
         color: colors[Math.floor(Math.random() * colors.length)],
-        alpha: Math.random() * 0.6 + 0.2,
+        baseAlpha: Math.random() * 0.6 + 0.25,
       });
     }
 
@@ -68,10 +76,14 @@ const CosmicCanvas = () => {
           p1.y -= (dyM / distM) * 0.4;
         }
 
+        // Twinkling alpha
+        const twinkle = Math.sin(Date.now() * 0.002 * p1.twinkleSpeed * 100 + p1.twinkleOffset) * 0.25;
+        const currentAlpha = Math.max(0.1, Math.min(0.95, p1.baseAlpha + twinkle));
+
         // Particle circle
         ctx.beginPath();
         ctx.arc(p1.x, p1.y, p1.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `${p1.color}${p1.alpha})`;
+        ctx.fillStyle = `${p1.color}${currentAlpha})`;
         ctx.fill();
 
         // Connect nearby particles
@@ -81,13 +93,13 @@ const CosmicCanvas = () => {
           const dy = p1.y - p2.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
 
-          if (dist < 110) {
+          if (dist < 105) {
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
             ctx.lineTo(p2.x, p2.y);
-            const lineAlpha = (1 - dist / 110) * 0.15;
-            ctx.strokeStyle = `rgba(147, 197, 253, ${lineAlpha})`;
-            ctx.lineWidth = 0.6;
+            const lineAlpha = (1 - dist / 105) * 0.12;
+            ctx.strokeStyle = `rgba(230, 210, 185, ${lineAlpha})`;
+            ctx.lineWidth = 0.55;
             ctx.stroke();
           }
         }

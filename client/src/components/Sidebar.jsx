@@ -46,21 +46,20 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="w-64 bg-slate-900/95 backdrop-blur-xl border-r border-slate-800 flex flex-col justify-between shrink-0 select-none z-30">
+    <aside className="w-64 bg-[#141722]/90 backdrop-blur-xl border-r border-[#d9b482]/20 flex flex-col justify-between shrink-0 select-none z-30">
       <div>
         {/* Brand Header */}
-        <div className="h-16 px-5 flex items-center space-x-3 border-b border-slate-800/80">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/20">
-            <Sparkles className="w-5 h-5 text-white" />
+        <div className="h-16 px-5 flex items-center space-x-3 border-b border-[#d9b482]/15">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#d9b482] via-[#c4975f] to-[#8c6032] flex items-center justify-center shadow-lg shadow-amber-900/30">
+            <Sparkles className="w-5 h-5 text-[#fffaf3]" />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="font-bold text-white text-base tracking-tight">DocuSync</span>
-              <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
+              <span className="font-bold text-[#faf6ef] text-base tracking-tight">DocuSync</span>
+              <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-amber-500/20 text-[#d9b482] border border-amber-500/30">
                 AI
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 font-medium">Enterprise Knowledge</p>
           </div>
         </div>
 
@@ -78,10 +77,10 @@ const Sidebar = () => {
                   key={item.path}
                   to={item.path}
                   className={({ isActive }) =>
-                    `group flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all ${
+                    `group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                       isActive
-                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25'
-                        : 'text-slate-400 hover:text-white hover:bg-slate-800/70'
+                        ? 'bg-gradient-to-r from-[#d9b482] to-[#c4975f] text-[#12151f] shadow-lg shadow-amber-900/30 font-bold'
+                        : 'text-[#c4b5a3] hover:text-[#fff0dc] hover:bg-white/[0.04]'
                     }`
                   }
                 >
@@ -90,7 +89,7 @@ const Sidebar = () => {
                     <span>{item.name}</span>
                   </div>
                   {item.badge && (
-                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 animate-pulse">
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 animate-pulse">
                       {item.badge}
                     </span>
                   )}
