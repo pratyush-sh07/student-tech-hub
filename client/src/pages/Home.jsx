@@ -1,338 +1,307 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  Sparkles, Bot, FileText, ShieldCheck, ArrowRight, 
-  Database, Cpu, Zap, CheckCircle2, Building2, 
-  Search, ChevronRight, Play, X
-} from 'lucide-react';
+import { ArrowRight, FileText, Search, MessageSquare, CheckCircle } from 'lucide-react';
 import FloatingChatWidget from '../components/FloatingChatWidget';
 
-/* ─── Unsplash photo pool ─── */
-const HERO_BG   = 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1920&q=80';
-const BOOKS_BG  = 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1920&q=80';
-const DESK_BG   = 'https://images.unsplash.com/photo-1453728013993-6d66e9c9123a?auto=format&fit=crop&w=1200&q=80';
-const OFFICE_BG = 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1920&q=80';
-const MEETING_BG= 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=1200&q=80';
-const CODE_BG   = 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=900&q=80';
-const DOCS_BG   = 'https://images.unsplash.com/photo-1568992687947-868a62a9f521?auto=format&fit=crop&w=900&q=80';
+/* ─── Warm editorial photo pool ─── */
+const HERO_BG   = 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=1920&q=85';
+const COFFEE_BG = 'https://images.unsplash.com/photo-1509785307050-d4066910ec1e?auto=format&fit=crop&w=1200&q=80';
+const DESK_BG   = 'https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1200&q=80';
+const ARCH_BG   = 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1920&q=80';
 
-/* ─── Floating UI Mockup preview cards ─── */
-const MockupCard = ({ img, title, tag, className }) => (
-  <div className={`absolute rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-slate-950 ${className}`}
-    style={{ backdropFilter: 'blur(8px)' }}>
-    <div className="h-5 bg-slate-900/90 flex items-center gap-1.5 px-3 border-b border-white/5">
-      <div className="w-2 h-2 rounded-full bg-red-500/70"/>
-      <div className="w-2 h-2 rounded-full bg-amber-500/70"/>
-      <div className="w-2 h-2 rounded-full bg-emerald-500/70"/>
-      <span className="ml-2 text-[9px] font-mono text-slate-500">{title}</span>
+/* ─── Color palette ─── */
+const BEIGE  = '#e8dcc8';
+const CREAM  = '#f5f0e8';
+const TAN    = '#c4a882';
+const COFFEE = '#6b4c2a';
+const INK    = '#1a1714';
+const WARM   = '#2c2420';
+
+/* ─── Left floating card — Dashboard (dark) ─── */
+const LeftCard = () => (
+  <div className="w-full h-full flex flex-col" style={{ background: INK, color: BEIGE }}>
+    {/* Mini navbar */}
+    <div className="flex items-center justify-between px-4 py-2.5 border-b" style={{ borderColor: 'rgba(232,220,200,0.08)', background: WARM }}>
+      <span style={{ fontFamily: 'Georgia, serif', fontSize: '11px', color: TAN, letterSpacing: '0.05em' }}>DocuSync</span>
+      <div className="flex gap-3 text-[9px]" style={{ color: 'rgba(196,168,130,0.6)' }}>
+        <span>Dashboard</span><span>Docs</span><span>Chat</span>
+      </div>
     </div>
-    <div className="relative">
-      <img src={img} alt="" className="w-full h-full object-cover" style={{ maxHeight: '140px' }}/>
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"/>
-      <div className="absolute bottom-2 left-2.5">
-        <span className="text-[9px] font-bold uppercase tracking-widest text-cyan-300 font-mono">{tag}</span>
+    <div className="px-4 py-4 flex-1">
+      <p style={{ fontSize: '9px', color: TAN, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '12px' }}>Knowledge Base</p>
+      {['HR Handbook 2026','Legal — GDPR Compliance','Engineering Architecture','Sales Playbook Q4'].map((t,i)=>(
+        <div key={i} style={{ padding: '8px 0', borderBottom: 'none', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+          <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: TAN, opacity: 0.7, flexShrink: 0 }}/>
+          <span style={{ fontSize: '10px', color: 'rgba(232,220,200,0.75)', fontFamily: 'Georgia, serif' }}>{t}</span>
+        </div>
+      ))}
+      <div style={{ marginTop: '16px', padding: '10px 12px', background: 'rgba(232,220,200,0.05)', borderRadius: '8px', border: '1px solid rgba(232,220,200,0.1)' }}>
+        <p style={{ fontSize: '8px', color: TAN, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '4px' }}>Active Since</p>
+        <p style={{ fontSize: '11px', color: BEIGE, fontFamily: 'Georgia, serif' }}>Monday – Friday</p>
+        <p style={{ fontSize: '9px', color: 'rgba(232,220,200,0.5)' }}>Los Angeles, CA</p>
       </div>
     </div>
   </div>
 );
 
-/* ─── Department Queries ─── */
-const QUESTIONS = [
-  { dept: 'Legal',       query: 'What SOC-2 data residency policies apply to AI models?',     src: 'SOC2_Compliance_2026.pdf',    lat: '310ms' },
-  { dept: 'Engineering', query: 'What are our EKS Helm deployment standards?',                 src: 'Cloud_Architecture_Spec.pdf', lat: '380ms' },
-  { dept: 'HR',          query: 'What is our annual PTO and wellness stipend policy?',          src: 'Employee_Handbook_2026.pdf',  lat: '275ms' },
-  { dept: 'Sales',       query: 'What are enterprise tier pricing thresholds?',                src: 'Sales_Playbook_Q4.pdf',        lat: '340ms' },
-];
+/* ─── Center floating card — Search (light beige) ─── */
+const CenterCard = () => (
+  <div className="w-full h-full flex flex-col" style={{ background: CREAM, color: INK }}>
+    <div className="flex items-center justify-between px-5 py-3 border-b" style={{ borderColor: 'rgba(26,23,20,0.1)' }}>
+      <span style={{ fontFamily: 'Georgia, serif', fontSize: '11px', color: COFFEE, letterSpacing: '0.05em' }}>DOCUSYNC AI</span>
+      <div className="flex gap-4 text-[9px]" style={{ color: 'rgba(107,76,42,0.6)', fontFamily: 'Georgia, serif' }}>
+        <span>Knowledge</span><span>Copilot</span><span>Vault</span><span style={{ padding: '3px 8px', border: '1px solid rgba(107,76,42,0.4)', borderRadius: '4px', color: COFFEE }}>Ask AI</span>
+      </div>
+    </div>
+    <div className="flex-1 px-5 py-5">
+      <p style={{ fontFamily: 'Georgia, serif', fontSize: '28px', fontWeight: 400, lineHeight: 1.1, color: INK, marginBottom: '6px', letterSpacing: '-0.01em' }}>
+        INSTITUTIONAL<br/>KNOWLEDGE
+      </p>
+      <p style={{ fontSize: '9px', color: COFFEE, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '16px' }}>BY DOCUSYNC AI</p>
+      <div style={{ height: '1px', background: 'rgba(26,23,20,0.1)', marginBottom: '14px' }}/>
+      <p style={{ fontSize: '10px', color: 'rgba(26,23,20,0.6)', lineHeight: 1.6, marginBottom: '16px', fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
+        Instantly retrieve verified answers from your company's HR policies, legal documents, and architecture specs.
+      </p>
+      {/* Mini search bar */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: 'rgba(26,23,20,0.05)', borderRadius: '6px', border: '1px solid rgba(26,23,20,0.12)' }}>
+        <Search size={11} color={COFFEE}/>
+        <span style={{ fontSize: '10px', color: 'rgba(26,23,20,0.4)', fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>Search your documents...</span>
+      </div>
+    </div>
+  </div>
+);
 
-const ANSWERS = [
-  'DocuSync AI enforces SOC-2 Type II standards. All enterprise tenant data is cryptographically isolated—your proprietary documents are never used to train external frontier models.',
-  'Production microservices deploy via standardized Helm charts on AWS EKS. All inter-service comms require mTLS + JWT bearer authorization with 80% automated test coverage.',
-  'Full-time employees receive 25 annual PTO days plus corporate holidays. Health, dental, and vision coverage begins Day 1 with a $1,200 annual wellness stipend.',
-  'Standard SaaS tier is $45/user/month billed annually. Custom on-premises vector DB deployments require MSA countersigned by VP or C-level executive.',
-];
+/* ─── Right floating card — AI Chat (dark) ─── */
+const RightCard = () => (
+  <div className="w-full h-full flex flex-col" style={{ background: '#14110e', color: BEIGE }}>
+    <div className="flex items-center justify-between px-4 py-2.5 border-b" style={{ borderColor: 'rgba(232,220,200,0.06)', background: '#0f0d0a' }}>
+      <span style={{ fontSize: '9px', color: TAN, fontFamily: 'Georgia, serif', letterSpacing: '0.06em' }}>COPILOT · ACTIVE</span>
+      <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#7cbc7c' }}/>
+    </div>
+    <div style={{ flex: 1, padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      {/* AI bubble */}
+      <div style={{ padding: '10px 12px', background: 'rgba(232,220,200,0.06)', borderRadius: '0 10px 10px 10px', border: '1px solid rgba(232,220,200,0.08)' }}>
+        <p style={{ fontSize: '9px', color: 'rgba(232,220,200,0.7)', lineHeight: 1.5, fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
+          "Per the Employee Handbook §4.3, full-time employees receive 25 PTO days annually..."
+        </p>
+        <div style={{ marginTop: '6px', padding: '4px 8px', background: 'rgba(196,168,130,0.1)', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+          <FileText size={8} color={TAN}/>
+          <span style={{ fontSize: '8px', color: TAN, fontFamily: 'monospace' }}>Employee_Handbook.pdf</span>
+        </div>
+      </div>
+      {/* User bubble */}
+      <div style={{ alignSelf: 'flex-end', padding: '8px 12px', background: 'rgba(196,168,130,0.15)', borderRadius: '10px 0 10px 10px', border: '1px solid rgba(196,168,130,0.2)' }}>
+        <p style={{ fontSize: '9px', color: BEIGE }}>What is our GDPR policy?</p>
+      </div>
+      {/* AI response */}
+      <div style={{ padding: '10px 12px', background: 'rgba(232,220,200,0.06)', borderRadius: '0 10px 10px 10px', border: '1px solid rgba(232,220,200,0.08)' }}>
+        <p style={{ fontSize: '9px', color: 'rgba(232,220,200,0.7)', lineHeight: 1.5, fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
+          "All user data is cryptographically isolated per tenant. No cross-departmental access..."
+        </p>
+        <div style={{ marginTop: '6px', padding: '4px 8px', background: 'rgba(196,168,130,0.1)', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+          <FileText size={8} color={TAN}/>
+          <span style={{ fontSize: '8px', color: TAN, fontFamily: 'monospace' }}>Legal_GDPR_2026.pdf</span>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+/* ─── Browser Chrome Wrapper ─── */
+const BrowserMockup = ({ children, style = {}, className = '' }) => (
+  <div className={`rounded-xl overflow-hidden shadow-2xl ${className}`}
+    style={{ border: '1px solid rgba(255,255,255,0.06)', ...style }}>
+    {/* Browser chrome bar */}
+    <div style={{ height: '24px', background: '#2c2420', display: 'flex', alignItems: 'center', paddingLeft: '10px', gap: '5px', borderBottom: '1px solid rgba(255,255,255,0.04)', flexShrink: 0 }}>
+      <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#ff5f57' }}/>
+      <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#febc2e' }}/>
+      <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#28c840' }}/>
+    </div>
+    <div style={{ flex: 1, overflow: 'hidden', height: 'calc(100% - 24px)' }}>
+      {children}
+    </div>
+  </div>
+);
 
 export default function Home() {
-  const [activeQ, setActiveQ]   = useState(0);
-  const [sim, setSim]           = useState(false);
-  const [mousePos, setMousePos] = useState({ x: 760, y: 400 });
-  const [videoOpen, setVideoOpen] = useState(false);
-  const heroRef = useRef(null);
+  const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
-    const h = (e) => setMousePos({ x: e.clientX, y: e.clientY });
-    window.addEventListener('mousemove', h);
-    return () => window.removeEventListener('mousemove', h);
+    const h = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', h, { passive: true });
+    return () => window.removeEventListener('scroll', h);
   }, []);
 
-  const pick = (idx) => {
-    setActiveQ(idx); setSim(true);
-    setTimeout(() => setSim(false), 450);
-  };
+  const parallax = -scrollY * 0.3;
 
   return (
-    <div className="min-h-screen bg-[#0a0b0f] text-slate-100 overflow-x-hidden" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div style={{ background: INK, color: BEIGE, minHeight: '100vh', overflowX: 'hidden', fontFamily: "'Plus Jakarta Sans', -apple-system, sans-serif" }}>
 
       {/* ══════════════════════════════════════════
-          FLOATING GLASS NAVBAR
+          SLIM EDITORIAL NAVBAR
       ══════════════════════════════════════════ */}
-      <header className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 pt-4">
-        <div className="max-w-7xl mx-auto rounded-2xl px-6 py-3.5 flex items-center justify-between"
-          style={{ background:'rgba(8,10,18,0.85)', backdropFilter:'blur(20px)', border:'1px solid rgba(255,255,255,0.07)', boxShadow:'0 20px 60px rgba(0,0,0,0.5)' }}>
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background:'linear-gradient(135deg,#2563eb,#06b6d4)' }}>
-              <Sparkles className="w-4.5 h-4.5 text-white" size={18}/>
-            </div>
-            <div>
-              <span className="font-extrabold text-white text-sm tracking-tight">DocuSync AI</span>
-              <span className="ml-1.5 text-[9px] font-mono px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/25 uppercase tracking-widest">Astra</span>
-            </div>
-          </Link>
-
-          <nav className="hidden md:flex items-center gap-8 text-xs font-medium text-slate-300">
-            <a href="#hero"    className="hover:text-white transition">Platform</a>
-            <a href="#preview" className="hover:text-white transition">Live Demo</a>
-            <a href="#arch"    className="hover:text-white transition">Architecture</a>
-            <a href="#depts"   className="hover:text-white transition">Departments</a>
-          </nav>
-
-          <div className="flex items-center gap-3">
-            <Link to="/login"     className="text-xs font-semibold text-slate-300 hover:text-white px-4 py-2 rounded-xl transition">Sign In</Link>
-            <Link to="/dashboard" className="px-4 py-2 rounded-xl text-xs font-bold text-white flex items-center gap-1.5 transition hover:scale-[1.03]"
-              style={{ background:'linear-gradient(90deg,#2563eb,#06b6d4)', boxShadow:'0 0 25px rgba(37,99,235,0.4)' }}>
-              Launch Platform <ArrowRight size={13}/>
-            </Link>
+      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, height: '52px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 40px', background: 'rgba(26,23,20,0.92)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(232,220,200,0.06)' }}>
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
+          <div style={{ width: '28px', height: '28px', background: `linear-gradient(135deg, ${COFFEE}, ${TAN})`, borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontSize: '13px' }}>⬡</span>
           </div>
+          <span style={{ fontFamily: 'Georgia, serif', fontSize: '14px', color: BEIGE, letterSpacing: '0.04em' }}>DOCUSYNC AI</span>
+        </Link>
+
+        <nav style={{ display: 'flex', gap: '32px', fontSize: '11px', color: 'rgba(232,220,200,0.55)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+          <a href="#hero"     style={{ color: 'inherit', textDecoration: 'none', transition: 'color .2s' }} onMouseOver={e=>e.target.style.color=BEIGE} onMouseOut={e=>e.target.style.color='rgba(232,220,200,0.55)'}>Platform</a>
+          <a href="#features" style={{ color: 'inherit', textDecoration: 'none', transition: 'color .2s' }} onMouseOver={e=>e.target.style.color=BEIGE} onMouseOut={e=>e.target.style.color='rgba(232,220,200,0.55)'}>Features</a>
+          <a href="#how"      style={{ color: 'inherit', textDecoration: 'none', transition: 'color .2s' }} onMouseOver={e=>e.target.style.color=BEIGE} onMouseOut={e=>e.target.style.color='rgba(232,220,200,0.55)'}>How It Works</a>
+        </nav>
+
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <Link to="/login"    style={{ fontSize: '11px', color: 'rgba(232,220,200,0.6)', textDecoration: 'none', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Log In</Link>
+          <Link to="/dashboard" style={{ fontSize: '11px', fontWeight: 600, color: INK, background: BEIGE, padding: '7px 18px', borderRadius: '4px', textDecoration: 'none', letterSpacing: '0.04em', textTransform: 'uppercase', transition: 'background .2s' }}
+            onMouseOver={e=>e.target.style.background=CREAM}
+            onMouseOut={e=>e.target.style.background=BEIGE}>
+            Get Started
+          </Link>
         </div>
       </header>
 
       {/* ══════════════════════════════════════════
-          HERO — Full Viewport Photo Background
+          HERO — FULL VIEWPORT PHOTO + 3 FLOATING CARDS
+          Exactly like Squarespace reference
       ══════════════════════════════════════════ */}
-      <section id="hero" ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
-        {/* Full-bleed background photograph */}
-        <img src={HERO_BG} alt="Enterprise office"
-          className="absolute inset-0 w-full h-full object-cover object-center"
-          style={{ filter:'brightness(0.28) saturate(0.7)' }}/>
+      <section id="hero" style={{ position: 'relative', height: '100vh', minHeight: '700px', overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', paddingTop: '100px' }}>
+        {/* Background photograph — warm books/reading scene */}
+        <img src={HERO_BG} alt="Books and knowledge"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', filter: 'brightness(0.35) saturate(0.6) sepia(0.2)', transform: `translateY(${parallax}px)` }}/>
 
-        {/* Dynamic cursor spotlight */}
-        <div className="pointer-events-none absolute inset-0 z-[1] transition-all duration-200"
-          style={{ background:`radial-gradient(700px circle at ${mousePos.x}px ${mousePos.y}px, rgba(37,99,235,0.18), transparent 70%)` }}/>
+        {/* Warm dark overlay gradient */}
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(26,23,20,0.5) 0%, rgba(26,23,20,0.2) 35%, rgba(26,23,20,0.3) 65%, rgba(26,23,20,1) 100%)' }}/>
 
-        {/* Gradient vignette */}
-        <div className="absolute inset-0 z-[2]" style={{ background:'linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, transparent 30%, transparent 65%, rgba(10,11,15,1) 100%)' }}/>
-
-        {/* ── Floating product mockup cards (Squarespace style) ── */}
-        <div className="absolute inset-0 z-[3] pointer-events-none hidden lg:block">
-          {/* Left card — Docs list */}
-          <MockupCard img={DOCS_BG}    title="docusync://knowledge-base" tag="Knowledge Indexed"
-            className="w-[220px] left-[7%] top-[28%] rotate-[-5deg] animate-float-slow"/>
-          {/* Right card — Chat */}
-          <MockupCard img={CODE_BG}    title="docusync://copilot-chat"   tag="AI Copilot Active"
-            className="w-[220px] right-[7%] top-[26%] rotate-[5deg] animate-float-medium"/>
-          {/* Small bottom-left — security badge */}
-          <MockupCard img={MEETING_BG} title="docusync://compliance"     tag="SOC-2 Verified"
-            className="w-[180px] left-[14%] bottom-[22%] rotate-[3deg] animate-float-fast"/>
-        </div>
-
-        {/* Hero text content */}
-        <div className="relative z-[4] text-center max-w-4xl mx-auto px-4 pt-28 pb-24">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-7 text-xs font-semibold text-cyan-300"
-            style={{ background:'rgba(6,182,212,0.1)', border:'1px solid rgba(6,182,212,0.3)' }}>
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"/>
-            ENTERPRISE AI HACKATHON — GEMINI 2.0 RAG ENGINE
-          </div>
-
-          <h1 className="text-5xl sm:text-6xl lg:text-[5.2rem] font-extrabold leading-[1.05] tracking-tight text-white mb-6">
-            Your company's memory,<br/>
-            <span style={{ fontFamily:'Georgia, serif', fontStyle:'italic', fontWeight:400,
-              background:'linear-gradient(90deg,#93c5fd,#818cf8,#67e8f9)', WebkitBackgroundClip:'text', color:'transparent' }}>
-              finally searchable.
-            </span>
-          </h1>
-
-          <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed">
-            DocuSync AI turns siloed HR manuals, legal policies, and architecture docs into one verified copilot. 
-            <span className="text-white font-semibold"> Every answer cites its exact source.</span>
+        {/* Hero text — top center */}
+        <div style={{ position: 'relative', zIndex: 10, textAlign: 'center', maxWidth: '600px', padding: '0 24px' }}>
+          <Link to="/dashboard"
+            style={{ display: 'inline-block', fontSize: '13px', fontWeight: 600, color: INK, background: CREAM, padding: '14px 36px', borderRadius: '3px', textDecoration: 'none', letterSpacing: '0.04em', textTransform: 'uppercase', boxShadow: '0 4px 24px rgba(0,0,0,0.4)', transition: 'transform .2s, background .2s', marginBottom: '16px' }}
+            onMouseOver={e=>{e.currentTarget.style.background='#fff'; e.currentTarget.style.transform='translateY(-2px)'}}
+            onMouseOut={e=>{e.currentTarget.style.background=CREAM; e.currentTarget.style.transform='translateY(0)'}}>
+            Get Started
+          </Link>
+          <p style={{ fontSize: '13px', color: 'rgba(232,220,200,0.65)', fontFamily: 'Georgia, serif', fontStyle: 'italic', marginTop: '4px' }}>
+            For enterprise teams. No setup fee required.
           </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link to="/chat" className="w-full sm:w-auto px-8 py-4 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 hover:scale-[1.03] transition"
-              style={{ background:'linear-gradient(90deg,#2563eb,#4f46e5,#06b6d4)', boxShadow:'0 0 40px rgba(37,99,235,0.45)', border:'1px solid rgba(255,255,255,0.15)' }}>
-              <Bot size={16}/>  Engage AI Copilot
-            </Link>
-            <button onClick={() => setVideoOpen(true)}
-              className="w-full sm:w-auto px-8 py-4 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 hover:scale-[1.03] transition"
-              style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', backdropFilter:'blur(10px)' }}>
-              <Play size={14} className="text-cyan-300"/> Watch Platform Tour
-            </button>
-          </div>
-
-          {/* Floating stat pills */}
-          <div className="mt-12 flex flex-wrap justify-center gap-3">
-            {[
-              { icon: <Zap size={13} className="text-cyan-400"/>, label:'Sub-300ms RAG' },
-              { icon: <ShieldCheck size={13} className="text-emerald-400"/>, label:'SOC-2 Type II' },
-              { icon: <Building2 size={13} className="text-purple-400"/>, label:'RBAC Multi-Tenant' },
-              { icon: <CheckCircle2 size={13} className="text-blue-400"/>, label:'Zero Hallucinations' },
-            ].map((s,i) => (
-              <div key={i} className="flex items-center gap-2 px-4 py-1.5 rounded-full text-xs text-slate-200 font-medium"
-                style={{ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', backdropFilter:'blur(12px)' }}>
-                {s.icon} {s.label}
-              </div>
-            ))}
-          </div>
         </div>
 
-        {/* Scroll hint */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[4] flex flex-col items-center gap-2 text-slate-400 text-xs font-mono">
-          <span>SCROLL</span>
-          <div className="w-px h-10 bg-gradient-to-b from-cyan-400 to-transparent animate-pulse"/>
-        </div>
-      </section>
+        {/* ── THREE FLOATING BROWSER MOCKUP CARDS ── */}
+        {/* Squarespace style: left partially visible, center prominent, right partially visible */}
+        <div style={{ position: 'absolute', bottom: '-20px', left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '1100px', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: '12px', padding: '0 16px', zIndex: 10 }}>
 
-      {/* ══════════════════════════════════════════
-          BOOKS / LIBRARY PHOTO STRIP — trust bar
-      ══════════════════════════════════════════ */}
-      <section className="relative h-48 sm:h-64 overflow-hidden -mt-1">
-        <img src={BOOKS_BG} alt="Knowledge library" className="absolute inset-0 w-full h-full object-cover object-center"
-          style={{ filter:'brightness(0.25) saturate(0.5)' }}/>
-        <div className="absolute inset-0" style={{ background:'linear-gradient(to right, rgba(10,11,15,1) 0%, transparent 20%, transparent 80%, rgba(10,11,15,1) 100%)' }}/>
-        <div className="absolute inset-0" style={{ background:'linear-gradient(to bottom, rgba(10,11,15,1) 0%, transparent 40%, rgba(10,11,15,1) 100%)' }}/>
-        <div className="relative z-10 h-full flex flex-col items-center justify-center gap-5">
-          <p className="text-xs font-mono tracking-widest text-slate-400 uppercase">Trusted by Enterprise Institutions</p>
-          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-14">
-            {['NEXUS AEROSPACE','AXIOM HEALTH','VERTEX GLOBAL','CHRONOS CAPITAL','SYNAPSE LABS','HORIZON AI'].map((c,i) => (
-              <span key={i} className="font-mono text-xs font-bold tracking-widest text-slate-300 opacity-60">{c}</span>
-            ))}
+          {/* LEFT card — partially visible, tilted slightly */}
+          <div style={{ flexShrink: 0, width: '240px', height: '280px', transform: 'rotate(-2deg) translateY(20px)', opacity: 0.85, position: 'relative', zIndex: 1 }}>
+            <BrowserMockup style={{ width: '100%', height: '100%' }}>
+              <LeftCard/>
+            </BrowserMockup>
+          </div>
+
+          {/* CENTER card — largest, most prominent, upright */}
+          <div style={{ flexShrink: 0, width: '380px', height: '320px', transform: 'translateY(0px)', position: 'relative', zIndex: 2, filter: 'drop-shadow(0 30px 60px rgba(0,0,0,0.8))' }}>
+            <BrowserMockup style={{ width: '100%', height: '100%' }}>
+              <CenterCard/>
+            </BrowserMockup>
+          </div>
+
+          {/* RIGHT card — partially visible, tilted slightly opposite */}
+          <div style={{ flexShrink: 0, width: '240px', height: '280px', transform: 'rotate(2deg) translateY(20px)', opacity: 0.85, position: 'relative', zIndex: 1 }}>
+            <BrowserMockup style={{ width: '100%', height: '100%' }}>
+              <RightCard/>
+            </BrowserMockup>
           </div>
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════
-          INTERACTIVE RAG PLAYGROUND
-          (Dark panel + real desk photography)
-      ══════════════════════════════════════════ */}
-      <section id="preview" className="relative py-24 px-4 sm:px-6">
-        {/* Background photo bleed behind the section */}
-        <div className="absolute inset-0 overflow-hidden">
-          <img src={DESK_BG} alt="Desk workspace" className="absolute inset-0 w-full h-full object-cover object-center"
-            style={{ filter:'brightness(0.12) saturate(0.4)' }}/>
-          <div className="absolute inset-0" style={{ background:'rgba(10,11,15,0.8)' }}/>
+      {/* Tagline strip below hero */}
+      <section style={{ background: INK, padding: '60px 24px 50px', textAlign: 'center', borderTop: `1px solid rgba(232,220,200,0.06)` }}>
+        <p style={{ fontSize: '14px', color: 'rgba(232,220,200,0.5)', fontFamily: 'Georgia, serif', fontStyle: 'italic', letterSpacing: '0.02em' }}>
+          Trusted by{' '}
+          <span style={{ color: TAN, fontStyle: 'normal' }}>enterprise institutions</span>{' '}
+          that cannot afford knowledge gaps.
+        </p>
+        <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '32px', marginTop: '24px' }}>
+          {['NEXUS CORP', 'AXIOM HEALTH', 'VERTEX LEGAL', 'HORIZON AI', 'SYNAPSE LABS'].map((b,i)=>(
+            <span key={i} style={{ fontFamily: 'Georgia, serif', fontSize: '11px', letterSpacing: '0.12em', color: 'rgba(232,220,200,0.3)', textTransform: 'uppercase' }}>{b}</span>
+          ))}
         </div>
+      </section>
 
-        <div className="relative z-10 max-w-5xl mx-auto">
-          <div className="text-center mb-10">
-            <span className="text-xs font-mono tracking-widest text-cyan-400 uppercase">Interactive Terminal</span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white mt-1 tracking-tight">Verifiable Grounding, Live</h2>
-            <p className="text-sm text-slate-400 mt-2 max-w-xl mx-auto">Click any query to watch DocuSync retrieve and cite the exact document — no guessing, no hallucination.</p>
-          </div>
-
-          <div className="rounded-3xl overflow-hidden"
-            style={{ background:'rgba(10,14,26,0.85)', border:'1px solid rgba(96,165,250,0.2)', backdropFilter:'blur(24px)', boxShadow:'0 40px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08)' }}>
-            {/* Terminal chrome bar */}
-            <div className="flex items-center justify-between px-6 py-3.5 border-b border-white/5">
-              <div className="flex items-center gap-2">
-                <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-red-500/70"/><div className="w-3 h-3 rounded-full bg-amber-500/70"/><div className="w-3 h-3 rounded-full bg-emerald-500/70"/>
-                </div>
-                <span className="ml-2 font-mono text-[11px] text-slate-400">docusync-rag://v2.0 · Gemini 2.0</span>
-              </div>
-              <div className="flex items-center gap-3 font-mono text-[11px]">
-                <span className="text-emerald-400 flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"/> RAG Active · {QUESTIONS[activeQ].lat}
-                </span>
-                <span className="text-cyan-300 px-2.5 py-0.5 rounded font-bold" style={{ background:'rgba(6,182,212,0.1)', border:'1px solid rgba(6,182,212,0.25)' }}>
-                  99.9% Verified
-                </span>
+      {/* ══════════════════════════════════════════
+          PHOTO FEATURE SECTION — Coffee + Knowledge
+      ══════════════════════════════════════════ */}
+      <section id="features" style={{ background: WARM, padding: '100px 24px' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px', alignItems: 'center' }}>
+            {/* Left — photograph */}
+            <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', aspectRatio: '4/3' }}>
+              <img src={COFFEE_BG} alt="Knowledge and focus"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.75) saturate(0.7) sepia(0.3)' }}/>
+              {/* Overlay caption card */}
+              <div style={{ position: 'absolute', bottom: '20px', left: '20px', right: '20px', padding: '16px 20px', background: 'rgba(26,23,20,0.88)', borderRadius: '8px', border: '1px solid rgba(232,220,200,0.08)', backdropFilter: 'blur(12px)' }}>
+                <p style={{ fontSize: '11px', color: TAN, fontFamily: 'Georgia, serif', fontStyle: 'italic', marginBottom: '4px' }}>Sub-300ms retrieval</p>
+                <p style={{ fontSize: '9px', color: 'rgba(232,220,200,0.5)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Semantic vector search · Gemini 2.0 RAG</p>
               </div>
             </div>
-
-            <div className="p-6">
-              {/* Query selector grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 mb-6">
-                {QUESTIONS.map((q, i) => (
-                  <button key={i} onClick={() => pick(i)}
-                    className="p-3.5 rounded-xl text-left transition-all cursor-pointer text-xs"
-                    style={{
-                      background: activeQ===i ? 'rgba(37,99,235,0.18)' : 'rgba(255,255,255,0.03)',
-                      border: activeQ===i ? '1px solid rgba(96,165,250,0.5)' : '1px solid rgba(255,255,255,0.06)',
-                      boxShadow: activeQ===i ? '0 8px 25px rgba(37,99,235,0.15)' : 'none',
-                    }}>
-                    <span className="font-mono text-[10px] uppercase tracking-wider mb-1.5 block"
-                      style={{ color: activeQ===i ? '#67e8f9' : '#64748b' }}>{q.dept}</span>
-                    <p className="font-medium leading-snug line-clamp-2" style={{ color: activeQ===i ? '#f1f5f9' : '#94a3b8' }}>{q.query}</p>
-                  </button>
+            {/* Right — editorial text */}
+            <div>
+              <p style={{ fontSize: '10px', color: TAN, letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '16px', fontFamily: 'Georgia, serif' }}>Intelligent Retrieval</p>
+              <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '38px', fontWeight: 400, lineHeight: 1.2, color: BEIGE, letterSpacing: '-0.01em', marginBottom: '20px' }}>
+                Your company's memory, finally searchable.
+              </h2>
+              <p style={{ fontSize: '14px', color: 'rgba(232,220,200,0.55)', lineHeight: 1.75, marginBottom: '28px', fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
+                DocuSync AI ingests HR handbooks, legal policies, and architecture docs into a semantic vector store — then returns verified answers in under 300ms.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {['Every answer cites its exact source document', 'RBAC scoping keeps departments isolated', 'Zero hallucination — grounded context only'].map((f,i)=>(
+                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                    <div style={{ width: '4px', height: '4px', background: TAN, borderRadius: '50%', marginTop: '7px', flexShrink: 0 }}/>
+                    <span style={{ fontSize: '13px', color: 'rgba(232,220,200,0.7)', fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>{f}</span>
+                  </div>
                 ))}
               </div>
-
-              {/* Output */}
-              <div className="rounded-2xl p-5" style={{ background:'rgba(0,0,0,0.5)', border:'1px solid rgba(255,255,255,0.06)' }}>
-                <div className="flex items-center gap-2 text-xs font-mono text-cyan-300 mb-3 pb-3 border-b border-white/5">
-                  <Sparkles size={13} className="text-cyan-400"/> Copilot Answer Engine · Retrieval-Augmented Generation
-                </div>
-                {sim ? (
-                  <div className="py-8 flex items-center justify-center gap-3 text-xs text-cyan-300 font-mono animate-pulse">
-                    <div className="w-4 h-4 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"/>
-                    Executing cosine similarity search across tenant vectors...
-                  </div>
-                ) : (
-                  <>
-                    <p className="text-sm text-slate-200 leading-relaxed mb-4">{ANSWERS[activeQ]}</p>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-[11px] font-mono text-slate-500 flex items-center gap-1.5">
-                        <FileText size={11} className="text-cyan-400"/> Verified Source:
-                      </span>
-                      <span className="text-[11px] px-3 py-1 rounded-full font-mono font-semibold flex items-center gap-1.5"
-                        style={{ background:'rgba(37,99,235,0.15)', border:'1px solid rgba(96,165,250,0.3)', color:'#93c5fd' }}>
-                        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400"/> {QUESTIONS[activeQ].src}
-                      </span>
-                    </div>
-                  </>
-                )}
-              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* ══════════════════════════════════════════
-          THREE-COLUMN PHOTO FEATURE PANELS
-          (Squarespace-style image grid)
+          FULL-BLEED DARK PHOTO — CTA PANEL
       ══════════════════════════════════════════ */}
-      <section id="arch" className="py-24 px-4 sm:px-6 relative">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-14">
-            <span className="text-xs font-mono tracking-widest text-cyan-400 uppercase">RAG Architecture</span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white mt-1 tracking-tight">Built for enterprises that cannot afford mistakes</h2>
-          </div>
+      <section id="how" style={{ position: 'relative', padding: '140px 24px', overflow: 'hidden' }}>
+        <img src={ARCH_BG} alt="Enterprise space"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.15) saturate(0.3) sepia(0.4)' }}/>
+        <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to right, rgba(26,23,20,0.95) 0%, rgba(26,23,20,0.7) 60%, rgba(26,23,20,0.4) 100%)` }}/>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div style={{ position: 'relative', zIndex: 10, maxWidth: '1100px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }}>
+          {/* Left */}
+          <div>
+            <p style={{ fontSize: '10px', color: TAN, letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '16px', fontFamily: 'Georgia, serif' }}>How It Works</p>
+            <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '44px', fontWeight: 400, color: CREAM, lineHeight: 1.15, marginBottom: '32px', letterSpacing: '-0.01em' }}>
+              Three steps to institutional intelligence.
+            </h2>
+            <Link to="/dashboard"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 600, color: INK, background: BEIGE, padding: '14px 28px', borderRadius: '3px', textDecoration: 'none', letterSpacing: '0.06em', textTransform: 'uppercase', transition: 'background .2s, transform .2s' }}
+              onMouseOver={e=>{e.currentTarget.style.background=CREAM; e.currentTarget.style.transform='translateY(-2px)'}}
+              onMouseOut={e=>{e.currentTarget.style.background=BEIGE; e.currentTarget.style.transform='translateY(0)'}}>
+              Launch Platform <ArrowRight size={14}/>
+            </Link>
+          </div>
+          {/* Right — steps */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
             {[
-              { img: DOCS_BG,    icon:<Database size={20}/>, color:'text-cyan-300',   bg:'rgba(6,182,212,0.12)',   border:'rgba(6,182,212,0.25)',
-                title:'Vector Knowledge Store', text:'Documents are chunked into high-density semantic vectors stored in isolated tenant partitions. Cosine similarity retrieval returns top-k chunks in under 300ms.' },
-              { img: MEETING_BG, icon:<ShieldCheck size={20}/>, color:'text-emerald-300', bg:'rgba(16,185,129,0.12)', border:'rgba(16,185,129,0.25)',
-                title:'RBAC Scoped Filtering', text:'JWT tokens enforce department boundaries. HR records cannot cross into Sales queries without executive elevation. Zero cross-tenant data leakage.' },
-              { img: CODE_BG,    icon:<Cpu size={20}/>, color:'text-indigo-300',  bg:'rgba(99,102,241,0.12)',  border:'rgba(99,102,241,0.25)',
-                title:'Gemini 2.0 Reasoning Core', text:'The synthesis engine is constrained to retrieved context only. Every response ships with verifiable source document badges — no guessing, no hallucination.' },
-            ].map((f, i) => (
-              <div key={i} className="rounded-2xl overflow-hidden group cursor-pointer transition-all duration-500 hover:-translate-y-2"
-                style={{ border:`1px solid ${f.border}`, background:'rgba(10,14,26,0.7)', backdropFilter:'blur(16px)', boxShadow:'0 20px 50px rgba(0,0,0,0.4)' }}>
-                {/* Photo top */}
-                <div className="relative h-44 overflow-hidden">
-                  <img src={f.img} alt={f.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"/>
-                  <div className="absolute inset-0" style={{ background:'linear-gradient(to bottom, transparent 30%, rgba(10,14,26,1) 100%)' }}/>
-                  <div className="absolute bottom-3 left-4 p-2 rounded-xl" style={{ background:f.bg, border:`1px solid ${f.border}` }}>
-                    <span className={f.color}>{f.icon}</span>
-                  </div>
-                </div>
-                {/* Text */}
-                <div className="p-5">
-                  <h3 className="text-base font-bold text-white mb-2">{f.title}</h3>
-                  <p className="text-xs text-slate-400 leading-relaxed">{f.text}</p>
-                  <div className="mt-4 pt-4 flex items-center justify-between text-xs font-mono border-t border-white/5">
-                    <span className="text-slate-500">Verified Pipeline</span>
-                    <CheckCircle2 size={14} className="text-emerald-400"/>
-                  </div>
+              { n:'01', title:'Ingest Documents', body:'Upload PDFs, DOCX, and policy files. They are chunked, embedded, and indexed into your private tenant vector store.' },
+              { n:'02', title:'Ask Any Question', body:'Your team types a question in plain English. The AI retrieves top-k semantically similar chunks from your corpus.' },
+              { n:'03', title:'Verified Answer + Source', body:'Gemini synthesizes a grounded response and returns the exact source file — no guessing, no hallucination.' },
+            ].map((s,i)=>(
+              <div key={i} style={{ padding: '24px 0', borderBottom: i < 2 ? `1px solid rgba(232,220,200,0.07)` : 'none', display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+                <span style={{ fontFamily: 'Georgia, serif', fontSize: '13px', color: TAN, opacity: 0.6, flexShrink: 0, paddingTop: '3px' }}>{s.n}</span>
+                <div>
+                  <h3 style={{ fontFamily: 'Georgia, serif', fontSize: '16px', color: BEIGE, marginBottom: '6px', fontWeight: 400 }}>{s.title}</h3>
+                  <p style={{ fontSize: '13px', color: 'rgba(232,220,200,0.5)', lineHeight: 1.65, fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>{s.body}</p>
                 </div>
               </div>
             ))}
@@ -341,86 +310,60 @@ export default function Home() {
       </section>
 
       {/* ══════════════════════════════════════════
-          FULL-WIDTH PHOTO CTA SECTION
-          (Office skyline — corporate prestige)
+          DEPARTMENT PHOTO GRID
       ══════════════════════════════════════════ */}
-      <section id="depts" className="relative py-32 px-4 sm:px-6 overflow-hidden">
-        <img src={OFFICE_BG} alt="Enterprise office" className="absolute inset-0 w-full h-full object-cover object-center"
-          style={{ filter:'brightness(0.18) saturate(0.5)' }}/>
-        <div className="absolute inset-0" style={{ background:'linear-gradient(135deg, rgba(37,99,235,0.25), rgba(99,102,241,0.2), transparent)' }}/>
-        <div className="absolute inset-0" style={{ background:'linear-gradient(to bottom, rgba(10,11,15,0.9) 0%, transparent 25%, transparent 75%, rgba(10,11,15,0.9) 100%)' }}/>
-
-        <div className="relative z-10 max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            {/* Left — Headline */}
-            <div>
-              <span className="text-xs font-mono tracking-widest text-cyan-400 uppercase">Department Coverage</span>
-              <h2 className="text-4xl sm:text-5xl font-extrabold text-white mt-2 leading-tight tracking-tight">
-                Unified intelligence<br/>
-                <span style={{ fontFamily:'Georgia,serif', fontStyle:'italic', fontWeight:400,
-                  background:'linear-gradient(90deg,#93c5fd,#67e8f9)', WebkitBackgroundClip:'text', color:'transparent' }}>
-                  across every team.
-                </span>
-              </h2>
-              <p className="text-sm text-slate-300 mt-5 leading-relaxed max-w-md">
-                Role-based scoping means HR queries stay inside HR. Engineering gets architecture docs. Legal sees compliance policies. No silos, no confusion.
-              </p>
-              <div className="mt-8 flex items-center gap-4">
-                <Link to="/dashboard" className="px-6 py-3 rounded-xl text-sm font-bold text-white flex items-center gap-2 hover:scale-[1.03] transition"
-                  style={{ background:'linear-gradient(90deg,#2563eb,#06b6d4)', boxShadow:'0 0 30px rgba(37,99,235,0.4)' }}>
-                  Launch Enterprise Dashboard <ArrowRight size={15}/>
-                </Link>
-                <Link to="/login" className="px-6 py-3 rounded-xl text-sm font-semibold text-slate-200 hover:text-white transition"
-                  style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', backdropFilter:'blur(10px)' }}>
-                  Sign In
-                </Link>
-              </div>
-            </div>
-
-            {/* Right — Department cards */}
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { label:'Engineering',   color:'text-cyan-300',   bg:'rgba(6,182,212,0.08)',   border:'rgba(6,182,212,0.2)',   desc:'Architecture specs, cloud configs, CI/CD runbooks' },
-                { label:'Human Resources',color:'text-purple-300', bg:'rgba(168,85,247,0.08)',  border:'rgba(168,85,247,0.2)',  desc:'PTO policies, benefits handbooks, onboarding docs' },
-                { label:'Legal',         color:'text-amber-300',   bg:'rgba(251,191,36,0.08)',  border:'rgba(251,191,36,0.2)',  desc:'GDPR clauses, SOC-2 mandates, contract templates' },
-                { label:'Sales',         color:'text-emerald-300', bg:'rgba(16,185,129,0.08)',  border:'rgba(16,185,129,0.2)',  desc:'Pricing tiers, playbooks, competitive analysis' },
-              ].map((d,i) => (
-                <div key={i} className="p-4 rounded-xl transition-all duration-300 hover:-translate-y-1 group"
-                  style={{ background:d.bg, border:`1px solid ${d.border}`, backdropFilter:'blur(10px)', boxShadow:'0 10px 30px rgba(0,0,0,0.3)' }}>
-                  <h4 className={`text-xs font-bold uppercase tracking-wider mb-2 ${d.color}`}>{d.label}</h4>
-                  <p className="text-[11px] text-slate-400 leading-relaxed">{d.desc}</p>
-                </div>
-              ))}
-            </div>
+      <section style={{ background: INK, padding: '100px 24px' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '56px' }}>
+            <p style={{ fontSize: '10px', color: TAN, letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: 'Georgia, serif', marginBottom: '12px' }}>Departmental Coverage</p>
+            <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '40px', fontWeight: 400, color: BEIGE, letterSpacing: '-0.01em' }}>One platform, every team.</h2>
           </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '16px' }}>
+            {[
+              { label:'Engineering', photo:'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=600&q=70', desc:'Architecture specs, cloud configs, CI/CD runbooks' },
+              { label:'Human Resources', photo:'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=600&q=70', desc:'PTO policies, benefits, onboarding documentation' },
+              { label:'Legal', photo:'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=600&q=70', desc:'GDPR mandates, SOC-2 compliance, contract templates' },
+              { label:'Sales', photo:'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=70', desc:'Pricing tiers, playbooks, competitive intelligence' },
+            ].map((d,i)=>(
+              <div key={i} style={{ borderRadius: '10px', overflow: 'hidden', border: '1px solid rgba(232,220,200,0.06)', position: 'relative', aspectRatio: '3/4', cursor: 'pointer' }}
+                onMouseOver={e=>e.currentTarget.querySelector('img').style.filter='brightness(0.55) saturate(0.5) sepia(0.3)'}
+                onMouseOut={e=>e.currentTarget.querySelector('img').style.filter='brightness(0.35) saturate(0.4) sepia(0.4)'}>
+                <img src={d.photo} alt={d.label} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.35) saturate(0.4) sepia(0.4)', transition: 'filter 0.4s ease' }}/>
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(26,23,20,0.95) 0%, transparent 60%)' }}/>
+                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px 16px' }}>
+                  <h4 style={{ fontFamily: 'Georgia, serif', fontSize: '14px', color: CREAM, marginBottom: '6px', fontWeight: 400 }}>{d.label}</h4>
+                  <p style={{ fontSize: '11px', color: 'rgba(232,220,200,0.45)', lineHeight: 1.5, fontStyle: 'italic', fontFamily: 'Georgia, serif' }}>{d.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════
+          FINAL CTA STRIP
+      ══════════════════════════════════════════ */}
+      <section style={{ background: WARM, padding: '80px 24px', textAlign: 'center', borderTop: `1px solid rgba(232,220,200,0.06)` }}>
+        <p style={{ fontSize: '10px', color: TAN, letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: 'Georgia, serif', marginBottom: '12px' }}>DocuSync AI · Enterprise AI Hackathon</p>
+        <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '42px', fontWeight: 400, color: CREAM, marginBottom: '28px', letterSpacing: '-0.01em' }}>
+          Begin your knowledge transformation.
+        </h2>
+        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <Link to="/dashboard" style={{ fontSize: '12px', fontWeight: 600, color: INK, background: BEIGE, padding: '14px 32px', borderRadius: '3px', textDecoration: 'none', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+            Launch Platform
+          </Link>
+          <Link to="/login" style={{ fontSize: '12px', color: BEIGE, background: 'transparent', padding: '14px 32px', borderRadius: '3px', textDecoration: 'none', letterSpacing: '0.06em', textTransform: 'uppercase', border: `1px solid rgba(232,220,200,0.2)` }}>
+            Sign In
+          </Link>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t py-10 px-6 text-center text-xs text-slate-500 font-mono" style={{ borderColor:'rgba(255,255,255,0.05)' }}>
-        © 2026 DocuSync AI · Enterprise AI Hackathon · Grounded RAG with strict tenant isolation
+      <footer style={{ background: '#100e0b', padding: '24px', textAlign: 'center', borderTop: '1px solid rgba(232,220,200,0.04)' }}>
+        <p style={{ fontSize: '11px', color: 'rgba(232,220,200,0.25)', fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
+          © 2026 DocuSync AI — Grounded Retrieval-Augmented Generation for Enterprise
+        </p>
       </footer>
-
-      {/* Video modal placeholder */}
-      {videoOpen && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center" style={{ background:'rgba(0,0,0,0.85)', backdropFilter:'blur(8px)' }}
-          onClick={() => setVideoOpen(false)}>
-          <div className="relative rounded-2xl overflow-hidden w-full max-w-3xl mx-4 shadow-2xl" onClick={e=>e.stopPropagation()}
-            style={{ border:'1px solid rgba(255,255,255,0.1)' }}>
-            <button onClick={() => setVideoOpen(false)} className="absolute top-3 right-3 z-10 p-1.5 rounded-full bg-black/50 text-white hover:bg-black/80 transition">
-              <X size={16}/>
-            </button>
-            <img src={DESK_BG} alt="Platform demo" className="w-full h-64 sm:h-96 object-cover"/>
-            <div className="absolute inset-0 flex items-center justify-center flex-col gap-3">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background:'rgba(37,99,235,0.8)', backdropFilter:'blur(10px)' }}>
-                <Play size={24} className="text-white ml-1"/>
-              </div>
-              <p className="text-sm font-semibold text-white">DocuSync AI — Platform Tour</p>
-              <p className="text-xs text-slate-300">Demo video coming soon — Backend integration in progress</p>
-            </div>
-          </div>
-        </div>
-      )}
 
       <FloatingChatWidget />
     </div>

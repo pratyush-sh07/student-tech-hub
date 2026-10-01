@@ -2,28 +2,27 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import client from '../api/client';
-import { Sparkles, Lock, Mail, ArrowRight, AlertCircle, ShieldCheck, Zap, Building2, Bot, ArrowLeft } from 'lucide-react';
+import { ArrowRight, ArrowLeft } from 'lucide-react';
 import FloatingChatWidget from '../components/FloatingChatWidget';
-import CosmicCanvas from '../components/CosmicCanvas';
 
-/* Moody dark background photo behind the login card */
-const LOGIN_BG = 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1920&q=80';
+const LOGIN_BG  = 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=1920&q=85';
+const LOGIN_SIDE = 'https://images.unsplash.com/photo-1509785307050-d4066910ec1e?auto=format&fit=crop&w=800&q=80';
 
-const Login = () => {
-  const [email, setEmail]       = useState('');
+const BEIGE = '#e8dcc8';
+const CREAM = '#f5f0e8';
+const TAN   = '#c4a882';
+const COFFEE= '#6b4c2a';
+const INK   = '#1a1714';
+const WARM  = '#2c2420';
+
+export default function Login() {
+  const [email, setEmail]     = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading]   = useState(false);
-  const [error, setError]       = useState('');
-  const { setToken, setUser }   = useAuth();
-  const navigate                = useNavigate();
-  const location                = useLocation();
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const h = e => setMousePos({ x: e.clientX, y: e.clientY });
-    window.addEventListener('mousemove', h);
-    return () => window.removeEventListener('mousemove', h);
-  }, []);
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState('');
+  const { setToken, setUser } = useAuth();
+  const navigate              = useNavigate();
+  const location              = useLocation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,7 +32,7 @@ const Login = () => {
       const res = await client.post('/api/auth/login', { email, password });
       const token = res.data?.token || res.data?.access_token || 'demo-jwt-token';
       localStorage.setItem('token', token);
-      const userData = res.data?.user || { email, fullName: email.split('@')[0], department: res.data?.department || 'Engineering' };
+      const userData = res.data?.user || { email, fullName: email.split('@')[0], department: 'Engineering' };
       localStorage.setItem('user', JSON.stringify(userData));
       if (setToken) setToken(token);
       if (setUser) setUser(userData);
@@ -49,7 +48,7 @@ const Login = () => {
         navigate('/dashboard', { replace: true });
         return;
       }
-      setError(err.response?.data?.message || 'Invalid credentials.');
+      setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -57,142 +56,129 @@ const Login = () => {
 
   const handleDemo = (dept) => {
     const tok = 'demo-' + Date.now();
-    const u = { email: `${dept.toLowerCase()}@docusync.corp`, fullName: `Enterprise ${dept} Lead`, department: dept };
-    localStorage.setItem('token', tok);
-    localStorage.setItem('user', JSON.stringify(u));
-    if (setToken) setToken(tok);
-    if (setUser) setUser(u);
+    const u = { email: `${dept.toLowerCase()}@docusync.corp`, fullName: `${dept} Lead`, department: dept };
+    localStorage.setItem('token', tok); localStorage.setItem('user', JSON.stringify(u));
+    if (setToken) setToken(tok); if (setUser) setUser(u);
     navigate('/dashboard', { replace: true });
   };
 
+  const inputStyle = {
+    width: '100%', padding: '12px 14px', fontSize: '13px',
+    background: 'rgba(26,23,20,0.04)', border: '1px solid rgba(26,23,20,0.15)',
+    borderRadius: '4px', color: INK, outline: 'none',
+    fontFamily: 'Georgia, serif', boxSizing: 'border-box',
+    transition: 'border-color .2s',
+  };
+
   return (
-    <div className="min-h-screen relative overflow-hidden" style={{ background:'#06080e' }}>
-      {/* Full-bleed background photograph */}
-      <img src={LOGIN_BG} alt="Office background"
-        className="absolute inset-0 w-full h-full object-cover object-center"
-        style={{ filter:'brightness(0.22) saturate(0.5)' }}/>
+    <div style={{ minHeight: '100vh', display: 'flex', background: INK, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
 
-      {/* Particle canvas */}
-      <CosmicCanvas />
+      {/* ── LEFT PANEL: full-height photograph ── */}
+      <div style={{ flex: '0 0 48%', position: 'relative', overflow: 'hidden' }} className="hidden lg:block">
+        <img src={LOGIN_SIDE} alt="Knowledge and focus"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', filter: 'brightness(0.5) saturate(0.6) sepia(0.35)' }}/>
+        {/* Overlay gradient */}
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(26,23,20,0.4) 0%, rgba(26,23,20,0.85) 100%)' }}/>
 
-      {/* Cursor spotlight */}
-      <div className="pointer-events-none fixed inset-0 z-[2]"
-        style={{ background:`radial-gradient(600px circle at ${mousePos.x}px ${mousePos.y}px, rgba(37,99,235,0.16), transparent 70%)` }}/>
+        {/* Brand on top of photo */}
+        <div style={{ position: 'absolute', top: '40px', left: '40px' }}>
+          <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '32px', height: '32px', background: `linear-gradient(135deg, ${COFFEE}, ${TAN})`, borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: '14px' }}>⬡</span>
+            </div>
+            <span style={{ fontFamily: 'Georgia, serif', fontSize: '15px', color: BEIGE, letterSpacing: '0.06em' }}>DOCUSYNC AI</span>
+          </Link>
+        </div>
 
-      {/* Gradient vignette */}
-      <div className="absolute inset-0 z-[3]" style={{ background:'linear-gradient(135deg, rgba(37,99,235,0.15) 0%, transparent 60%, rgba(99,102,241,0.15) 100%)' }}/>
-
-      {/* Back to home */}
-      <div className="absolute top-5 left-5 z-20">
-        <Link to="/" className="flex items-center gap-2 text-xs font-semibold text-slate-300 hover:text-white px-3.5 py-2 rounded-xl transition"
-          style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', backdropFilter:'blur(12px)' }}>
-          <ArrowLeft size={13}/> Back to Home
-        </Link>
+        {/* Quote block */}
+        <div style={{ position: 'absolute', bottom: '60px', left: '40px', right: '40px' }}>
+          <div style={{ width: '32px', height: '1px', background: TAN, marginBottom: '20px', opacity: 0.6 }}/>
+          <p style={{ fontFamily: 'Georgia, serif', fontSize: '20px', fontWeight: 400, lineHeight: 1.35, color: CREAM, marginBottom: '12px', fontStyle: 'italic' }}>
+            "Every answer, traced back to its source."
+          </p>
+          <p style={{ fontSize: '11px', color: 'rgba(232,220,200,0.45)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            Grounded RAG · Gemini 2.0 · Enterprise AI
+          </p>
+        </div>
       </div>
 
-      {/* Floating decorative capsules */}
-      <div className="hidden lg:flex items-center gap-2 px-3.5 py-2 rounded-full text-xs text-cyan-200 absolute top-32 left-[10%] animate-float-slow"
-        style={{ background:'rgba(6,182,212,0.1)', border:'1px solid rgba(6,182,212,0.25)', backdropFilter:'blur(12px)', boxShadow:'0 10px 30px rgba(6,182,212,0.1)' }}>
-        <ShieldCheck size={13} className="text-cyan-400"/> End-to-End Encrypted
-      </div>
-      <div className="hidden lg:flex items-center gap-2 px-3.5 py-2 rounded-full text-xs text-indigo-200 absolute bottom-32 left-[12%] animate-float-reverse"
-        style={{ background:'rgba(99,102,241,0.1)', border:'1px solid rgba(99,102,241,0.25)', backdropFilter:'blur(12px)' }}>
-        <Bot size={13} className="text-indigo-300"/> Gemini 2.0 RAG Active
-      </div>
-      <div className="hidden lg:flex items-center gap-2 px-3.5 py-2 rounded-full text-xs text-purple-200 absolute top-40 right-[10%] animate-float-medium"
-        style={{ background:'rgba(168,85,247,0.1)', border:'1px solid rgba(168,85,247,0.25)', backdropFilter:'blur(12px)' }}>
-        <Building2 size={13} className="text-purple-300"/> Multi-Dept RBAC
-      </div>
-      <div className="hidden lg:flex items-center gap-2 px-3.5 py-2 rounded-full text-xs text-emerald-200 absolute bottom-28 right-[12%] animate-float-fast"
-        style={{ background:'rgba(16,185,129,0.1)', border:'1px solid rgba(16,185,129,0.25)', backdropFilter:'blur(12px)' }}>
-        <Zap size={13} className="text-emerald-300"/> Sub-300ms Retrieval
-      </div>
+      {/* ── RIGHT PANEL: login form on warm beige ── */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '60px 48px', background: CREAM, position: 'relative', overflowY: 'auto' }}>
 
-      {/* Login card */}
-      <div className="relative z-20 min-h-screen flex flex-col items-center justify-center py-12 px-4">
-        {/* Brand identity */}
-        <Link to="/" className="flex items-center gap-3 mb-6 group">
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl group-hover:scale-105 transition-transform"
-            style={{ background:'linear-gradient(135deg,#2563eb,#06b6d4)', boxShadow:'0 0 30px rgba(37,99,235,0.5)' }}>
-            <Sparkles size={22} className="text-white"/>
+        {/* Back to home — mobile */}
+        <div style={{ position: 'absolute', top: '24px', left: '24px' }}>
+          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: COFFEE, textDecoration: 'none', letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: 'Georgia, serif' }}>
+            <ArrowLeft size={12}/> Home
+          </Link>
+        </div>
+
+        <div style={{ maxWidth: '380px', width: '100%', margin: '0 auto' }}>
+          {/* Mobile brand */}
+          <div className="lg:hidden" style={{ marginBottom: '32px' }}>
+            <span style={{ fontFamily: 'Georgia, serif', fontSize: '16px', color: INK, letterSpacing: '0.06em' }}>DOCUSYNC AI</span>
           </div>
-          <div>
-            <span className="font-extrabold text-white text-xl tracking-tight">DocuSync AI</span>
-            <p className="text-[11px] font-mono text-slate-400">Institutional Knowledge OS</p>
-          </div>
-        </Link>
 
-        {/* Glass card */}
-        <div className="w-full max-w-sm"
-          style={{ background:'rgba(8,10,20,0.85)', backdropFilter:'blur(28px)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'24px', boxShadow:'0 40px 80px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.1)' }}>
-          <div className="px-8 pt-8 pb-7">
-            <h2 className="text-2xl font-extrabold text-white tracking-tight mb-0.5">Welcome back</h2>
-            <p className="text-xs text-slate-400 mb-6">Sign in to your enterprise workspace</p>
+          <p style={{ fontSize: '10px', color: TAN, letterSpacing: '0.14em', textTransform: 'uppercase', fontFamily: 'Georgia, serif', marginBottom: '8px' }}>Welcome back</p>
+          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '36px', fontWeight: 400, color: INK, marginBottom: '4px', letterSpacing: '-0.01em' }}>Sign in</h1>
+          <p style={{ fontSize: '13px', color: 'rgba(26,23,20,0.5)', marginBottom: '36px', fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>Access your enterprise knowledge hub</p>
 
-            {error && (
-              <div className="mb-4 p-3 rounded-xl text-xs flex items-start gap-2 text-red-200"
-                style={{ background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.3)' }}>
-                <AlertCircle size={14} className="shrink-0 mt-0.5 text-red-400"/>{error}
-              </div>
-            )}
+          {error && (
+            <div style={{ padding: '12px 16px', marginBottom: '20px', background: 'rgba(180,60,40,0.08)', border: '1px solid rgba(180,60,40,0.2)', borderRadius: '4px', fontSize: '12px', color: '#8b2a1a', fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
+              {error}
+            </div>
+          )}
 
-            <form className="space-y-3.5" onSubmit={handleSubmit}>
-              <div>
-                <label className="block text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider mb-1.5">Corporate Email</label>
-                <div className="relative">
-                  <Mail size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"/>
-                  <input type="email" required value={email} onChange={e=>setEmail(e.target.value)}
-                    placeholder="alex.chen@enterprise.com"
-                    className="w-full pl-9 pr-3 py-2.5 text-xs text-white placeholder-slate-500 rounded-xl outline-none transition"
-                    style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)' }}
-                    onFocus={e=>e.target.style.borderColor='rgba(96,165,250,0.5)'}
-                    onBlur={e=>e.target.style.borderColor='rgba(255,255,255,0.08)'}/>
-                </div>
-              </div>
-              <div>
-                <label className="block text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider mb-1.5">Password</label>
-                <div className="relative">
-                  <Lock size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"/>
-                  <input type="password" required value={password} onChange={e=>setPassword(e.target.value)}
-                    placeholder="••••••••••••"
-                    className="w-full pl-9 pr-3 py-2.5 text-xs text-white placeholder-slate-500 rounded-xl outline-none transition"
-                    style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)' }}
-                    onFocus={e=>e.target.style.borderColor='rgba(96,165,250,0.5)'}
-                    onBlur={e=>e.target.style.borderColor='rgba(255,255,255,0.08)'}/>
-                </div>
-              </div>
-              <button type="submit" disabled={loading}
-                className="w-full py-3 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2 mt-2 hover:scale-[1.02] transition disabled:opacity-60"
-                style={{ background:'linear-gradient(90deg,#2563eb,#4f46e5,#06b6d4)', boxShadow:'0 0 30px rgba(37,99,235,0.4)', border:'1px solid rgba(255,255,255,0.15)' }}>
-                {loading ? <><span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"/> Authenticating...</>
-                  : <><span>Sign in to Enterprise Hub</span><ArrowRight size={14}/></>}
-              </button>
-            </form>
-
-            <div className="mt-6 pt-5 border-t" style={{ borderColor:'rgba(255,255,255,0.06)' }}>
-              <p className="text-center text-[11px] font-mono text-slate-500 mb-3">Hackathon Quick Access</p>
-              <div className="grid grid-cols-2 gap-2">
-                {[['Engineering','text-cyan-300'],['HR','text-purple-300']].map(([dept,cls]) => (
-                  <button key={dept} onClick={()=>handleDemo(dept)}
-                    className={`py-2 rounded-xl text-[11px] font-mono flex items-center justify-center gap-1.5 ${cls} transition hover:scale-[1.03] cursor-pointer`}
-                    style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)' }}>
-                    <ShieldCheck size={12}/> {dept} Lead
-                  </button>
-                ))}
-              </div>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: COFFEE, marginBottom: '6px', fontFamily: 'Georgia, serif' }}>Corporate Email</label>
+              <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
+                placeholder="you@enterprise.com" style={inputStyle}
+                onFocus={e => e.target.style.borderColor = COFFEE}
+                onBlur={e => e.target.style.borderColor = 'rgba(26,23,20,0.15)'}/>
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: COFFEE, marginBottom: '6px', fontFamily: 'Georgia, serif' }}>Password</label>
+              <input type="password" required value={password} onChange={e => setPassword(e.target.value)}
+                placeholder="••••••••••" style={inputStyle}
+                onFocus={e => e.target.style.borderColor = COFFEE}
+                onBlur={e => e.target.style.borderColor = 'rgba(26,23,20,0.15)'}/>
             </div>
 
-            <p className="text-center text-xs text-slate-500 mt-5">
-              New to DocuSync?{' '}
-              <Link to="/register" className="text-cyan-400 hover:text-cyan-300 font-semibold transition">Create account</Link>
-            </p>
+            <button type="submit" disabled={loading}
+              style={{ padding: '14px', fontSize: '12px', fontWeight: 600, color: CREAM, background: INK, border: 'none', borderRadius: '4px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'background .2s', marginTop: '6px', opacity: loading ? 0.7 : 1, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              onMouseOver={e => !loading && (e.target.style.background = WARM)}
+              onMouseOut={e => e.target.style.background = INK}>
+              {loading ? 'Authenticating...' : <><span>Sign In</span><ArrowRight size={14}/></>}
+            </button>
+          </form>
+
+          {/* Divider */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '28px 0' }}>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(26,23,20,0.1)' }}/>
+            <span style={{ fontSize: '10px', color: 'rgba(26,23,20,0.35)', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'Georgia, serif' }}>Hackathon Demo Access</span>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(26,23,20,0.1)' }}/>
           </div>
+
+          {/* Demo buttons */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            {['Engineering', 'HR', 'Legal', 'Sales'].map(dept => (
+              <button key={dept} onClick={() => handleDemo(dept)}
+                style={{ padding: '10px', fontSize: '11px', fontFamily: 'Georgia, serif', fontStyle: 'italic', color: COFFEE, background: 'transparent', border: `1px solid rgba(107,76,42,0.25)`, borderRadius: '4px', cursor: 'pointer', transition: 'background .2s, border-color .2s' }}
+                onMouseOver={e => { e.currentTarget.style.background = 'rgba(107,76,42,0.07)'; e.currentTarget.style.borderColor = 'rgba(107,76,42,0.5)'; }}
+                onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(107,76,42,0.25)'; }}>
+                {dept} Lead →
+              </button>
+            ))}
+          </div>
+
+          <p style={{ textAlign: 'center', fontSize: '12px', color: 'rgba(26,23,20,0.45)', marginTop: '28px', fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
+            New to DocuSync?{' '}
+            <Link to="/register" style={{ color: COFFEE, textDecoration: 'none', fontStyle: 'normal', fontWeight: 600 }}>Create account</Link>
+          </p>
         </div>
       </div>
 
       <FloatingChatWidget/>
     </div>
   );
-};
-
-export default Login;
+}
