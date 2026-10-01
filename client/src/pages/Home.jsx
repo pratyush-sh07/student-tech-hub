@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   Sparkles, 
   Bot, 
@@ -18,140 +18,141 @@ import {
   Terminal, 
   Activity,
   Globe,
-  Share2
+  Share2,
+  Compass,
+  Key,
+  Shield,
+  ExternalLink,
+  ChevronDown
 } from 'lucide-react';
+import CosmicCanvas from '../components/CosmicCanvas';
 import FloatingChatWidget from '../components/FloatingChatWidget';
 
-const HOME_HERO_QUERIES = [
-  'What is the annual PTO & wellness allowance for full-time employees?',
-  'What are the compliance requirements for SOC-2 Type II AI data isolation?',
-  'How do our microservices deploy to AWS EKS with Kubernetes Helm charts?',
-  'What is the pricing tier for on-prem enterprise deployments?'
+const ENTERPRISE_CLIENTS = [
+  'NEXUS AEROSPACE',
+  'AXIOM HEALTH',
+  'VERTEX GLOBAL',
+  'CHRONOS CAPITAL',
+  'SYNAPSE LABS',
+  'HORIZON AI'
 ];
 
-const ARCHITECTURE_STEPS = [
+const SAMPLE_QUESTIONS = [
   {
-    step: '01',
-    title: 'Multi-Format Ingestion',
-    desc: 'PDFs, Markdown, SOPs, and handbooks ingested without data leakage.',
-    icon: FileText,
-    glow: 'from-blue-500/20 to-cyan-500/20'
+    category: 'Legal & Governance',
+    query: 'What are the SOC-2 Type II data residency and model training policies?',
+    answer: 'DocuSync AI strictly enforces SOC-2 Type II guidelines. All processed queries, context chunks, and enterprise documents remain inside cryptographically isolated tenant partitions. Proprietary institutional data is never retained or utilized to train external frontier models.',
+    sources: ['Enterprise_Security_Mandate_2026.pdf', 'SOC2_TypeII_Audit_Report.pdf'],
+    latency: '340ms',
+    precision: '99.9%'
   },
   {
-    step: '02',
-    title: 'Vector Embedding Space',
-    desc: 'Dense embeddings generated and indexed for high-dimensional cosine similarity.',
-    icon: Database,
-    glow: 'from-indigo-500/20 to-purple-500/20'
+    category: 'Engineering & DevOps',
+    query: 'What are the microservices deployment standards for AWS EKS clusters?',
+    answer: 'Production services must be deployed via standardized Helm charts on AWS EKS with minimum 80% automated unit test coverage. All inter-service communications require mTLS and JWT Bearer authorization.',
+    sources: ['Cloud_Architecture_Standards.pdf', 'Kubernetes_Helm_Guidelines.yaml'],
+    latency: '410ms',
+    precision: '100%'
   },
   {
-    step: '03',
-    title: 'RAG Context Injection',
-    desc: 'Top-k semantic passages retrieve strictly within tenant boundaries.',
-    icon: Layers,
-    glow: 'from-purple-500/20 to-pink-500/20'
+    category: 'Human Resources',
+    query: 'What is our annual employee PTO and health insurance coverage policy?',
+    answer: 'Full-time enterprise personnel receive 25 annual paid time off days alongside corporate holidays. Comprehensive health, dental, and vision insurance begins on day 1 with a $1,200 annual wellness stipend.',
+    sources: ['Employee_Handbook_2026.pdf', 'Benefits_Enrollment_Guide.pdf'],
+    latency: '290ms',
+    precision: '99.8%'
   },
   {
-    step: '04',
-    title: 'Gemini 2.0 Reasoning & Citations',
-    desc: 'Synthesizes enterprise-grade responses with verifiable source document badges.',
-    icon: Bot,
-    glow: 'from-cyan-500/20 to-emerald-500/20'
+    category: 'Sales & Commercial',
+    query: 'What are the contract sign-off thresholds for custom on-premises deployments?',
+    answer: 'Standard cloud SaaS is $45/user/month billed annually. Custom on-premises vector databases and private VPC deployments require commercial Master Services Agreements countersigned by a VP or C-level executive.',
+    sources: ['Enterprise_Pricing_Matrix_Q4.pdf', 'Sales_Governance_Playbook.pdf'],
+    latency: '380ms',
+    precision: '100%'
   }
 ];
 
 const Home = () => {
-  const navigate = useNavigate();
-  const [activeQuery, setActiveQuery] = useState(HOME_HERO_QUERIES[0]);
-  const [demoAnswer, setDemoAnswer] = useState({
-    text: 'According to the Employee Onboarding & Benefits Guide: Full-time employees receive 25 days of annual paid time off (PTO) alongside standard corporate holidays. Comprehensive health, dental, and vision insurance begins on day 1 of employment with an annual wellness stipend of $1,200.',
-    sources: ['Employee_Onboarding_Benefits_Guide.pdf (HR)', 'Corporate_Benefits_2026.pdf'],
-    accuracy: '99.9% Citation Grounded'
-  });
-  const [isSimulating, setIsSimulating] = useState(false);
+  const [selectedIdx, setSelectedIdx] = useState(0);
+  const [simulating, setSimulating] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
-  const handleSelectQuery = (q) => {
-    setActiveQuery(q);
-    setIsSimulating(true);
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  const handleSelectQuestion = (idx) => {
+    setSelectedIdx(idx);
+    setSimulating(true);
     setTimeout(() => {
-      if (q.includes('SOC-2') || q.includes('compliance')) {
-        setDemoAnswer({
-          text: 'According to Enterprise AI Security & Compliance Policy 2026: All copilot sessions adhere strictly to SOC-2 Type II standards. Data processed through large language models is never used for public retraining, and tenant isolation is cryptographically guaranteed.',
-          sources: ['Enterprise_AI_Security_Policy_2026.pdf (Legal)', 'SOC2_TypeII_Audit.pdf'],
-          accuracy: '100% Citation Grounded'
-        });
-      } else if (q.includes('AWS EKS') || q.includes('Kubernetes')) {
-        setDemoAnswer({
-          text: 'According to Microservices Deployment & Cloud Architecture: Services are deployed on AWS EKS using standardized Helm charts. Production release criteria require passing automated CI/CD suites with >=80% test coverage and JWT-bearer authenticated endpoints.',
-          sources: ['Cloud_Architecture_Spec.pdf (Engineering)', 'EKS_Deployment_Manifest.yaml'],
-          accuracy: '99.8% Citation Grounded'
-        });
-      } else if (q.includes('pricing') || q.includes('tier')) {
-        setDemoAnswer({
-          text: 'According to Q4 Enterprise Sales Playbook & Pricing Tiers: DocuSync AI enterprise tier is priced at $45/user/month billed annually. Custom on-premises vector database deployments require executive agreement sign-off.',
-          sources: ['Q4_Enterprise_Sales_Playbook.pdf (Sales)', 'Master_Services_Agreement.pdf'],
-          accuracy: '100% Citation Grounded'
-        });
-      } else {
-        setDemoAnswer({
-          text: 'According to the Employee Onboarding & Benefits Guide: Full-time employees receive 25 days of annual paid time off (PTO) alongside standard corporate holidays. Comprehensive health, dental, and vision insurance begins on day 1 of employment with an annual wellness stipend of $1,200.',
-          sources: ['Employee_Onboarding_Benefits_Guide.pdf (HR)', 'Corporate_Benefits_2026.pdf'],
-          accuracy: '99.9% Citation Grounded'
-        });
-      }
-      setIsSimulating(false);
-    }, 450);
+      setSimulating(false);
+    }, 400);
   };
 
+  const activeData = SAMPLE_QUESTIONS[selectedIdx];
+
   return (
-    <div className="min-h-screen bg-[#07090e] text-slate-100 relative overflow-hidden bg-grid-pattern">
-      {/* Floating Animated Cosmic Blobs & Glowing Aurora */}
-      <div className="absolute top-[-10%] left-[20%] w-[600px] h-[600px] rounded-full bg-blue-600/15 blur-[120px] pointer-events-none animate-blob"></div>
-      <div className="absolute top-[30%] right-[-5%] w-[550px] h-[550px] rounded-full bg-indigo-600/15 blur-[140px] pointer-events-none animate-blob animation-delay-2000"></div>
-      <div className="absolute bottom-[10%] left-[-5%] w-[650px] h-[650px] rounded-full bg-cyan-600/10 blur-[130px] pointer-events-none animate-blob animation-delay-4000"></div>
+    <div className="min-h-screen bg-[#06080e] text-slate-100 relative overflow-hidden bg-grid-tech noise-overlay">
+      {/* Interactive Constellation Particle Canvas */}
+      <CosmicCanvas />
 
-      {/* Floating Astra Orbital Rings */}
-      <div className="absolute top-28 left-1/2 -translate-x-1/2 w-[900px] h-[900px] border border-blue-500/10 rounded-full pointer-events-none animate-spin-slow"></div>
-      <div className="absolute top-44 left-1/2 -translate-x-1/2 w-[700px] h-[700px] border border-indigo-500/10 rounded-full pointer-events-none animate-spin-slow" style={{ animationDirection: 'reverse' }}></div>
+      {/* Dynamic Cursor Spotlight that follows mouse */}
+      <div
+        className="pointer-events-none fixed inset-0 z-10 transition-opacity duration-300 opacity-60"
+        style={{
+          background: `radial-gradient(650px circle at ${mousePos.x}px ${mousePos.y}px, rgba(37, 99, 235, 0.12), transparent 75%)`,
+        }}
+      />
 
-      {/* Top Floating Glassmorphic Navigation Bar */}
-      <header className="sticky top-4 z-40 max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="rounded-2xl glass-panel px-5 py-3.5 flex items-center justify-between border border-white/10 shadow-2xl backdrop-blur-2xl">
+      {/* Atmospheric Luminous Background Orbs */}
+      <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[850px] h-[550px] bg-gradient-to-b from-blue-600/20 via-indigo-500/10 to-transparent blur-[140px] pointer-events-none animate-pulse-glow"></div>
+      <div className="absolute top-[35%] -left-32 w-[600px] h-[600px] bg-cyan-600/10 blur-[150px] pointer-events-none animate-blob"></div>
+      <div className="absolute top-[65%] -right-32 w-[650px] h-[650px] bg-purple-600/10 blur-[160px] pointer-events-none animate-blob animation-delay-3000"></div>
+
+      {/* Top Floating Glass Navigation */}
+      <header className="sticky top-5 z-40 max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="luxury-glass rounded-2xl px-6 py-4 flex items-center justify-between border border-white/10 shadow-2xl backdrop-blur-3xl">
           {/* Brand */}
-          <Link to="/" className="flex items-center space-x-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/25 group-hover:scale-105 transition-transform duration-300">
-              <Sparkles className="w-5 h-5 text-white" />
+          <Link to="/" className="flex items-center space-x-3.5 group">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-400 p-[1px] shadow-xl shadow-blue-500/25 group-hover:scale-105 transition-transform duration-300">
+              <div className="w-full h-full bg-slate-950/80 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                <Sparkles className="w-5 h-5 text-cyan-300" />
+              </div>
             </div>
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="font-extrabold text-white text-base tracking-tight">DocuSync</span>
-                <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
-                  AI Astra
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-500/20 text-cyan-300 border border-blue-500/30 uppercase tracking-widest font-semibold">
+                  Astra
                 </span>
               </div>
-              <p className="text-[10px] text-slate-400">Enterprise AI Knowledge Engine</p>
+              <p className="text-[10px] text-slate-400 font-medium">Enterprise Intelligence OS</p>
             </div>
           </Link>
 
-          {/* Center Navigation Links */}
-          <nav className="hidden md:flex items-center space-x-6 text-xs font-semibold text-slate-300">
-            <a href="#features" className="hover:text-blue-400 transition">Features</a>
-            <a href="#architecture" className="hover:text-blue-400 transition">Architecture</a>
-            <a href="#departments" className="hover:text-blue-400 transition">Departments</a>
-            <a href="#playground" className="hover:text-blue-400 transition">Live Copilot</a>
+          {/* Navigation Links */}
+          <nav className="hidden md:flex items-center space-x-8 text-xs font-medium text-slate-300">
+            <a href="#overview" className="hover:text-cyan-300 transition tracking-wide">Platform</a>
+            <a href="#playground" className="hover:text-cyan-300 transition tracking-wide">Live Copilot</a>
+            <a href="#architecture" className="hover:text-cyan-300 transition tracking-wide">RAG Engine</a>
+            <a href="#governance" className="hover:text-cyan-300 transition tracking-wide">Security</a>
           </nav>
 
-          {/* Actions */}
-          <div className="flex items-center space-x-3">
+          {/* Action Buttons */}
+          <div className="flex items-center space-x-3.5">
             <Link
               to="/login"
-              className="text-xs font-semibold text-slate-300 hover:text-white px-3.5 py-2 rounded-xl transition"
+              className="text-xs font-semibold text-slate-300 hover:text-white px-4 py-2 rounded-xl transition"
             >
               Sign In
             </Link>
             <Link
               to="/dashboard"
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold shadow-lg shadow-blue-600/30 hover:scale-[1.02] transition-all flex items-center gap-1.5 cursor-pointer"
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white text-xs font-bold shadow-xl shadow-blue-600/30 hover:shadow-blue-500/50 hover:scale-[1.02] transition-all flex items-center gap-2 cursor-pointer border border-white/20"
             >
               <span>Launch Platform</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -160,144 +161,168 @@ const Home = () => {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative pt-20 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center z-10">
-        {/* Floating Top Pill */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-panel border border-blue-500/30 text-xs font-semibold text-cyan-300 shadow-xl mb-8 animate-float-slow">
-          <Sparkles className="w-3.5 h-3.5 text-blue-400 animate-spin-slow" />
-          <span>Next-Generation Enterprise AI Knowledge Orchestration</span>
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+      {/* Main Luxury Hero Section */}
+      <section className="relative pt-24 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center z-20">
+        {/* Floating Editorial Badge */}
+        <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full luxury-glass border border-cyan-500/30 text-xs font-semibold text-cyan-300 shadow-2xl mb-8 animate-float-slow">
+          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+          <span>ENTERPRISE AI HACKATHON EDITION</span>
+          <span className="text-slate-500">•</span>
+          <span className="text-slate-300 font-mono text-[11px]">GEMINI 2.0 RAG</span>
         </div>
 
-        {/* Main Astra Headline */}
-        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white max-w-5xl mx-auto leading-[1.1]">
-          Institutional Intelligence, Grounded in{' '}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-cyan-300 animate-pulse">
-            Absolute Truth.
-          </span>
+        {/* High-Impact Editorial Luxury Headline */}
+        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white max-w-5xl mx-auto leading-[1.08]">
+          Institutional memory,{' '}
+          <span className="font-editorial italic font-normal text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-200 to-indigo-300">
+            orchestrated with
+          </span>{' '}
+          mathematical precision.
         </h1>
 
-        <p className="mt-6 text-sm sm:text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
-          DocuSync AI synthesizes enterprise handbooks, compliance policies, and technical architectures into a verifiable conversational copilot. Zero hallucinations. Real-time citations.
+        <p className="mt-6 text-sm sm:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed font-normal">
+          DocuSync AI synthesizes disparate organizational knowledge—SOPs, architecture manifests, legal policies, and handbooks—into an authoritative conversational copilot. <span className="text-white font-medium">100% cited. Zero hallucinations.</span>
         </p>
 
-        {/* Floating Metrics Capsules around Hero */}
-        <div className="mt-8 flex flex-wrap justify-center gap-3 max-w-3xl mx-auto">
-          <div className="px-3.5 py-1.5 rounded-full glass-card text-xs text-slate-300 flex items-center gap-2 border border-slate-700/60 animate-float-medium">
+        {/* Floating Status Capsules */}
+        <div className="mt-8 flex flex-wrap justify-center gap-3 max-w-4xl mx-auto">
+          <div className="px-4 py-1.5 rounded-full luxury-card text-xs text-slate-300 flex items-center gap-2 border border-slate-700/60 animate-float-medium">
             <Zap className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Sub-Second Vector RAG</span>
+            <span className="font-mono text-cyan-200 font-semibold">Sub-300ms</span>
+            <span className="text-slate-400">RAG Vector Indexing</span>
           </div>
-          <div className="px-3.5 py-1.5 rounded-full glass-card text-xs text-slate-300 flex items-center gap-2 border border-slate-700/60 animate-float-slow">
+          <div className="px-4 py-1.5 rounded-full luxury-card text-xs text-slate-300 flex items-center gap-2 border border-slate-700/60 animate-float-slow">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>SOC-2 Type II Strict RBAC</span>
+            <span className="font-semibold text-emerald-200">SOC-2 Type II</span>
+            <span className="text-slate-400">Guaranteed Tenant Isolation</span>
           </div>
-          <div className="px-3.5 py-1.5 rounded-full glass-card text-xs text-slate-300 flex items-center gap-2 border border-slate-700/60 animate-float-reverse">
+          <div className="px-4 py-1.5 rounded-full luxury-card text-xs text-slate-300 flex items-center gap-2 border border-slate-700/60 animate-float-reverse">
             <Building2 className="w-3.5 h-3.5 text-purple-400" />
-            <span>Enterprise Multi-Tenant</span>
-          </div>
-          <div className="px-3.5 py-1.5 rounded-full glass-card text-xs text-slate-300 flex items-center gap-2 border border-slate-700/60 animate-float-fast">
-            <Bot className="w-3.5 h-3.5 text-indigo-400" />
-            <span>Gemini 2.0 Reasoning Core</span>
+            <span className="font-semibold text-purple-200">Multi-Department</span>
+            <span className="text-slate-400">Scoped RBAC Architecture</span>
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* Hero Call to Actions */}
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
             to="/chat"
-            className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold text-sm shadow-2xl shadow-blue-500/30 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold text-xs tracking-wider uppercase shadow-2xl shadow-blue-500/30 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2.5 border border-white/20"
           >
             <Bot className="w-4 h-4" />
-            <span>Open AI Copilot</span>
+            <span>Engage AI Copilot</span>
           </Link>
           <Link
             to="/documents"
-            className="w-full sm:w-auto px-7 py-3.5 rounded-xl glass-panel hover:bg-slate-800/80 text-slate-200 font-semibold text-sm border border-slate-700/80 hover:border-slate-500 transition-all flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-8 py-4 rounded-xl luxury-glass hover:bg-slate-800/80 text-slate-200 font-semibold text-xs tracking-wider uppercase border border-slate-700 hover:border-slate-500 transition-all flex items-center justify-center gap-2.5"
           >
             <FileText className="w-4 h-4 text-cyan-400" />
-            <span>Browse Knowledge Base</span>
+            <span>Ingest Company Documents</span>
           </Link>
+        </div>
+
+        {/* Corporate Trust Ticker */}
+        <div className="mt-16 pt-8 border-t border-slate-800/60">
+          <p className="text-[11px] font-mono tracking-widest text-slate-400 uppercase mb-5">
+            Engineered For High-Stakes Institutional Knowledge & Governance
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-14 opacity-60">
+            {ENTERPRISE_CLIENTS.map((client, idx) => (
+              <span key={idx} className="font-mono text-xs font-bold tracking-widest text-slate-300">
+                {client}
+              </span>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Interactive Live Playground Showcase */}
-      <section id="playground" className="py-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto z-10 relative">
-        <div className="rounded-3xl glass-panel border border-blue-500/30 shadow-2xl p-6 sm:p-8 backdrop-blur-2xl relative overflow-hidden">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+      {/* Interactive Holographic Copilot Playground */}
+      <section id="playground" className="py-16 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto z-20 relative">
+        <div className="text-center mb-10">
+          <span className="text-xs font-mono font-bold tracking-widest text-cyan-400 uppercase">Interactive Terminal</span>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-white mt-1 tracking-tight">
+            Verifiable Grounding Simulation
+          </h2>
+          <p className="text-xs text-slate-400 mt-1 max-w-xl mx-auto">
+            Experience how DocuSync cites exact organizational records before delivering answers.
+          </p>
+        </div>
+
+        <div className="luxury-glass rounded-3xl border border-blue-500/30 p-6 sm:p-8 shadow-2xl backdrop-blur-3xl relative overflow-hidden">
+          {/* Terminal Top Bar */}
+          <div className="flex items-center justify-between pb-5 border-b border-slate-800/80 text-xs">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
-                <Bot className="w-5 h-5" />
+              <div className="flex items-center space-x-1.5">
+                <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
+                <div className="w-3 h-3 rounded-full bg-amber-500/80"></div>
+                <div className="w-3 h-3 rounded-full bg-emerald-500/80"></div>
               </div>
-              <div>
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  Live Copilot Grounding Simulation
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">
-                    Interactive
-                  </span>
-                </h3>
-                <p className="text-xs text-slate-400">Test how DocuSync cites internal documents in real-time</p>
-              </div>
+              <span className="font-mono text-slate-400 text-[11px] pl-2">docusync-rag-core://v2.0</span>
             </div>
-            <span className="text-xs font-mono text-cyan-400 self-start sm:self-auto bg-cyan-950/40 px-3 py-1 rounded-lg border border-cyan-800/40">
-              {demoAnswer.accuracy}
-            </span>
-          </div>
 
-          {/* Quick Query Picker */}
-          <div className="py-4">
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2.5">
-              Select Sample Organizational Question:
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {HOME_HERO_QUERIES.map((q, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleSelectQuery(q)}
-                  className={`p-3 rounded-xl text-left text-xs font-medium border transition-all cursor-pointer flex items-center justify-between ${
-                    activeQuery === q
-                      ? 'bg-blue-600/20 border-blue-500 text-white shadow-md shadow-blue-500/10'
-                      : 'bg-slate-900/60 border-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-850'
-                  }`}
-                >
-                  <span className="truncate pr-2">{q}</span>
-                  <ChevronRight className="w-3.5 h-3.5 shrink-0 text-slate-500" />
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Simulated Copilot Output Box */}
-          <div className="mt-4 p-5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-3">
-            <div className="flex items-center justify-between text-xs text-slate-400">
-              <span className="flex items-center gap-1.5 font-semibold text-blue-400">
-                <Sparkles className="w-3.5 h-3.5" />
-                DocuSync Copilot Answer:
+            <div className="flex items-center gap-3 font-mono text-[11px]">
+              <span className="text-emerald-400 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                Inference Latency: {activeData.latency}
               </span>
-              <span className="text-[10px] text-slate-500">Grounded via RAG</span>
+              <span className="text-cyan-400 bg-cyan-950/60 px-2.5 py-0.5 rounded border border-cyan-800/50">
+                {activeData.precision} Confidence
+              </span>
+            </div>
+          </div>
+
+          {/* Department Question Tabs */}
+          <div className="py-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+            {SAMPLE_QUESTIONS.map((q, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleSelectQuestion(idx)}
+                className={`p-3 rounded-xl text-left transition-all cursor-pointer border ${
+                  selectedIdx === idx
+                    ? 'bg-blue-600/20 border-cyan-400 text-white shadow-lg shadow-blue-500/15'
+                    : 'bg-slate-900/60 border-slate-800/80 text-slate-400 hover:text-slate-200 hover:bg-slate-850'
+                }`}
+              >
+                <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider block mb-1">
+                  {q.category}
+                </span>
+                <p className="text-xs font-medium line-clamp-2 leading-snug">{q.query}</p>
+              </button>
+            ))}
+          </div>
+
+          {/* Synthesized Output Display */}
+          <div className="mt-2 p-6 rounded-2xl bg-slate-950/90 border border-slate-800 space-y-4">
+            <div className="flex items-center justify-between text-xs border-b border-slate-800/80 pb-3">
+              <div className="flex items-center gap-2 text-cyan-300 font-semibold font-mono text-xs">
+                <Sparkles className="w-4 h-4 text-cyan-400" />
+                <span>Copilot Answer Engine</span>
+              </div>
+              <span className="text-[10px] font-mono text-slate-500">Retrieval Augmented Generation</span>
             </div>
 
-            {isSimulating ? (
-              <div className="py-6 flex items-center justify-center gap-2 text-xs text-blue-400 animate-pulse">
-                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                <span>Retrieving semantic chunks and synthesizing citations...</span>
+            {simulating ? (
+              <div className="py-8 flex items-center justify-center gap-3 text-xs text-cyan-300 animate-pulse font-mono">
+                <div className="w-4 h-4 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+                <span>Executing Cosine Similarity Vector Retrieval...</span>
               </div>
             ) : (
               <>
-                <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">
-                  {demoAnswer.text}
+                <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-sans">
+                  {activeData.answer}
                 </p>
 
                 {/* Source Citation Badges */}
-                <div className="pt-2 flex flex-wrap items-center gap-2 border-t border-slate-800/80">
-                  <span className="text-[10px] font-semibold text-slate-400 flex items-center gap-1">
-                    <FileText className="w-3 h-3 text-slate-500" /> Verified Sources:
+                <div className="pt-3 flex flex-wrap items-center gap-2 border-t border-slate-800/80">
+                  <span className="text-[11px] font-mono text-slate-400 flex items-center gap-1.5 mr-1">
+                    <FileText className="w-3.5 h-3.5 text-cyan-400" /> Verified Sources:
                   </span>
-                  {demoAnswer.sources.map((src, idx) => (
+                  {activeData.sources.map((src, idx) => (
                     <span
                       key={idx}
-                      className="inline-flex items-center gap-1 text-[10px] px-2.5 py-0.5 rounded-full bg-blue-950/80 text-blue-300 border border-blue-800/60 font-semibold"
+                      className="inline-flex items-center gap-1.5 text-[11px] px-3 py-1 rounded-full bg-blue-950/80 text-cyan-200 border border-blue-700/60 font-mono shadow-sm"
                     >
+                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
                       Source: {src}
                     </span>
                   ))}
@@ -308,125 +333,109 @@ const Home = () => {
         </div>
       </section>
 
-      {/* RAG Architecture Pipeline Visualizer */}
-      <section id="architecture" className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto z-10 relative">
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <span className="text-xs font-bold uppercase tracking-wider text-cyan-400">Architecture Pipeline</span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white mt-2 tracking-tight">
-            How DocuSync AI Powers Institutional Knowledge
+      {/* RAG Architecture Flow & Visual Matrix */}
+      <section id="architecture" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto z-20 relative">
+        <div className="text-center max-w-3xl mx-auto mb-14">
+          <span className="text-xs font-mono font-bold tracking-widest text-cyan-400 uppercase">Architecture Stack</span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-white mt-1 tracking-tight">
+            Engineered for Zero Data Leakage
           </h2>
           <p className="text-xs sm:text-sm text-slate-400 mt-2">
-            A deterministic pipeline engineered for enterprise zero-hallucination compliance.
+            Every step of our RAG pipeline ensures your proprietary enterprise intellectual property never exits the tenant.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {ARCHITECTURE_STEPS.map((s, idx) => {
-            const Icon = s.icon;
-            return (
-              <div
-                key={idx}
-                className="rounded-2xl glass-card p-6 flex flex-col justify-between relative group transition-all duration-300"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs font-mono font-bold text-cyan-400">{s.step}</span>
-                    <div className={`p-2.5 rounded-xl bg-gradient-to-tr ${s.glow} border border-slate-700/60 group-hover:scale-110 transition-transform`}>
-                      <Icon className="w-4 h-4 text-white" />
-                    </div>
-                  </div>
-                  <h3 className="text-sm font-bold text-white mb-2">{s.title}</h3>
-                  <p className="text-xs text-slate-400 leading-relaxed">{s.desc}</p>
-                </div>
-                <div className="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between text-[11px] text-slate-500">
-                  <span>Verified Pipeline</span>
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="luxury-card rounded-2xl p-7 flex flex-col justify-between">
+            <div>
+              <div className="w-12 h-12 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-cyan-300 mb-5">
+                <Database className="w-6 h-6" />
               </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* Department Coverage Matrix */}
-      <section id="departments" className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto z-10 relative border-t border-slate-800/80">
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <span className="text-xs font-bold uppercase tracking-wider text-blue-400">Multi-Department Scope</span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white mt-2 tracking-tight">
-            Unified Knowledge Across All Teams
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-400 mt-2">
-            Scoped role-based access control allows HR, Engineering, Sales, and Legal to query isolated or cross-functional intelligence.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="rounded-2xl glass-card p-5 border border-cyan-500/20 hover:border-cyan-500/50 transition">
-            <span className="text-xs px-2.5 py-1 rounded-md bg-cyan-950/60 text-cyan-400 border border-cyan-800/60 font-bold inline-block mb-3">
-              Engineering
-            </span>
-            <h4 className="text-sm font-bold text-white mb-1.5">Specs & Architecture</h4>
-            <p className="text-xs text-slate-400">Kubernetes manifests, cloud configs, CI/CD procedures, and API documentation.</p>
+              <h3 className="text-base font-bold text-white mb-2">High-Density Vector Storage</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Documents are fragmented into semantic nodes with recursive chunking and embedded into private dimensional vectors.
+              </p>
+            </div>
+            <div className="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs font-mono text-cyan-400">
+              <span>Cosine Distance Search</span>
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            </div>
           </div>
 
-          <div className="rounded-2xl glass-card p-5 border border-purple-500/20 hover:border-purple-500/50 transition">
-            <span className="text-xs px-2.5 py-1 rounded-md bg-purple-950/60 text-purple-400 border border-purple-800/60 font-bold inline-block mb-3">
-              Human Resources
-            </span>
-            <h4 className="text-sm font-bold text-white mb-1.5">Benefits & Handbooks</h4>
-            <p className="text-xs text-slate-400">Paid time off, health insurance policies, onboarding roadmaps, and wellness stipends.</p>
+          <div className="luxury-card rounded-2xl p-7 flex flex-col justify-between">
+            <div>
+              <div className="w-12 h-12 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 mb-5">
+                <Shield className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-bold text-white mb-2">RBAC Scoped Filtering</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Tokens automatically enforce department partitions. HR records cannot cross into Sales scopes without administrative elevation.
+              </p>
+            </div>
+            <div className="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs font-mono text-indigo-400">
+              <span>Tenant Boundary Locked</span>
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            </div>
           </div>
 
-          <div className="rounded-2xl glass-card p-5 border border-amber-500/20 hover:border-amber-500/50 transition">
-            <span className="text-xs px-2.5 py-1 rounded-md bg-amber-950/60 text-amber-400 border border-amber-800/60 font-bold inline-block mb-3">
-              Legal & Compliance
-            </span>
-            <h4 className="text-sm font-bold text-white mb-1.5">SOC-2 & Governance</h4>
-            <p className="text-xs text-slate-400">Data retention mandates, GDPR clauses, customer privacy terms, and audit trails.</p>
-          </div>
-
-          <div className="rounded-2xl glass-card p-5 border border-emerald-500/20 hover:border-emerald-500/50 transition">
-            <span className="text-xs px-2.5 py-1 rounded-md bg-emerald-950/60 text-emerald-400 border border-emerald-800/60 font-bold inline-block mb-3">
-              Sales & GTM
-            </span>
-            <h4 className="text-sm font-bold text-white mb-1.5">Playbooks & Pricing</h4>
-            <p className="text-xs text-slate-400">Enterprise tiers, MSA guidelines, competitor analysis, and discount structures.</p>
+          <div className="luxury-card rounded-2xl p-7 flex flex-col justify-between">
+            <div>
+              <div className="w-12 h-12 rounded-xl bg-cyan-600/20 border border-cyan-500/30 flex items-center justify-center text-cyan-300 mb-5">
+                <Cpu className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-bold text-white mb-2">Gemini 2.0 Reasoning Core</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Model synthesis is constrained to provided context only. The engine outputs verifiable citation badges for every claim.
+              </p>
+            </div>
+            <div className="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs font-mono text-cyan-400">
+              <span>Grounded Determinism</span>
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Footer Banner */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto z-10 relative">
-        <div className="rounded-3xl bg-gradient-to-r from-blue-900/40 via-indigo-900/30 to-cyan-900/30 border border-blue-500/30 p-8 sm:p-12 text-center backdrop-blur-2xl relative overflow-hidden">
-          <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-            Ready to deploy DocuSync AI across your institution?
+      {/* Institutional Call-to-Action */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto z-20 relative">
+        <div className="luxury-glass rounded-3xl p-10 sm:p-14 text-center border border-cyan-500/30 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+          <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight">
+            Bring clarity to your{' '}
+            <span className="font-editorial italic font-normal text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-indigo-300">
+              enterprise data.
+            </span>
           </h2>
-          <p className="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto mt-3 mb-8">
-            Experience real-time grounded intelligence with source badges. Fast setup, zero maintenance, and full compliance.
+          <p className="text-xs sm:text-base text-slate-300 max-w-2xl mx-auto mt-4 mb-8 leading-relaxed">
+            Eliminate hours spent hunting for employee handbooks, architectural blueprints, or compliance policies. Experience sub-second grounded intelligence.
           </p>
+
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               to="/dashboard"
-              className="px-8 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-xl shadow-blue-600/30 transition-all cursor-pointer"
+              className="px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold text-xs uppercase tracking-wider shadow-xl shadow-blue-500/25 transition cursor-pointer"
             >
-              Launch Dashboard
+              Launch Enterprise Dashboard
             </Link>
             <Link
               to="/login"
-              className="px-8 py-3.5 rounded-xl glass-panel text-slate-200 font-semibold text-xs border border-slate-700 hover:border-slate-500 transition-all cursor-pointer"
+              className="px-8 py-4 rounded-xl luxury-glass text-slate-200 font-semibold text-xs uppercase tracking-wider border border-slate-700 hover:border-slate-500 transition cursor-pointer"
             >
-              Enterprise Sign In
+              Access Member Login
             </Link>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-slate-900 py-8 px-6 text-center text-xs text-slate-500">
-        <p>© 2026 DocuSync AI — Hackathon Enterprise AI Edition. Grounded RAG with strict tenant data isolation.</p>
+      <footer className="border-t border-slate-900/90 py-10 px-6 text-center text-xs text-slate-500 z-20 relative">
+        <p className="font-mono text-[11px]">
+          © 2026 DocuSync AI • Enterprise Hackathon Platform • Inspired by Astra & Next-Gen Spatial Design
+        </p>
       </footer>
 
-      {/* Floating AI Chatbot Assistant for prospective customer & institutional questions */}
+      {/* 24/7 Floating Institutional AI Chatbot Assistant */}
       <FloatingChatWidget />
     </div>
   );
