@@ -5,19 +5,21 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
 import Documents from './pages/Documents';
 import Chat from './pages/Chat';
+import Profile from './pages/Profile';
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Public Authentication Routes */}
+          {/* Public Authentication Views */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* Protected Application Workspace */}
+          {/* Protected Enterprise SaaS Application */}
           <Route
             path="/"
             element={
@@ -26,13 +28,15 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<Navigate to="/chat" replace />} />
-            <Route path="chat" element={<Chat />} />
+            <Route index element={<Navigate to="/dashboard" replace />} />
+            <Route path="dashboard" element={<Dashboard />} />
             <Route path="documents" element={<Documents />} />
+            <Route path="chat" element={<Chat />} />
+            <Route path="profile" element={<Profile />} />
           </Route>
 
-          {/* Catch-all redirect */}
-          <Route path="*" element={<Navigate to="/chat" replace />} />
+          {/* Catch-all redirect to Dashboard */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

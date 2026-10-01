@@ -14,8 +14,8 @@ import {
   AlertCircle,
   FolderOpen,
   Building2,
-  ExternalLink,
-  BookOpen
+  BookOpen,
+  Sparkles
 } from 'lucide-react';
 
 const DEPARTMENTS = ['All', 'HR', 'Engineering', 'Sales', 'Legal'];
@@ -62,8 +62,6 @@ const Documents = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDept, setSelectedDept] = useState('All');
-  
-  // Toast notifications
   const [toast, setToast] = useState(null);
 
   // Form state
@@ -73,13 +71,12 @@ const Documents = () => {
   const [formContent, setFormContent] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // Show Toast Helper
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
   };
 
-  // Fetch documents on mount as required: GET /api/documents
+  // GET /api/documents on mount
   const fetchDocuments = async () => {
     setLoading(true);
     try {
@@ -88,7 +85,6 @@ const Documents = () => {
       if (docs.length > 0) {
         setDocuments(docs);
       } else {
-        // Load default enterprise docs if database is fresh
         const localSaved = localStorage.getItem('docusync_documents');
         if (localSaved) {
           setDocuments(JSON.parse(localSaved));
@@ -98,7 +94,7 @@ const Documents = () => {
         }
       }
     } catch (err) {
-      console.warn('Backend GET /api/documents fallback to local sync:', err);
+      console.warn('Backend GET /api/documents fallback to local storage:', err);
       const localSaved = localStorage.getItem('docusync_documents');
       if (localSaved) {
         setDocuments(JSON.parse(localSaved));
@@ -115,11 +111,11 @@ const Documents = () => {
     fetchDocuments();
   }, []);
 
-  // Form submission: POST /api/documents
+  // POST /api/documents on submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formTitle.trim() || !formContent.trim()) {
-      showToast('Title and content are required', 'error');
+      showToast('Document title and text content are required', 'error');
       return;
     }
 
@@ -147,17 +143,15 @@ const Documents = () => {
       const updated = [createdDoc, ...documents];
       setDocuments(updated);
       localStorage.setItem('docusync_documents', JSON.stringify(updated));
-      showToast('Document uploaded and indexed successfully!', 'success');
+      showToast('Document indexed into knowledge base!', 'success');
       
-      // Reset form
       setFormTitle('');
       setFormDept('Engineering');
       setFormTags('');
       setFormContent('');
       setIsModalOpen(false);
     } catch (err) {
-      console.warn('Backend POST /api/documents error, maintaining local state:', err);
-      // Graceful offline/demo sync
+      console.warn('Backend POST /api/documents fallback to local sync:', err);
       const mockDoc = {
         ...payload,
         id: 'doc-' + Date.now(),
@@ -178,7 +172,7 @@ const Documents = () => {
     }
   };
 
-  // Delete document
+  // DELETE /api/documents/:id
   const handleDelete = async (id, title) => {
     if (!window.confirm(`Are you sure you want to remove "${title}"?`)) return;
 
@@ -187,17 +181,16 @@ const Documents = () => {
       const updated = documents.filter((d) => d.id !== id);
       setDocuments(updated);
       localStorage.setItem('docusync_documents', JSON.stringify(updated));
-      showToast(`Document "${title}" deleted`, 'success');
+      showToast(`Document "${title}" removed`, 'success');
     } catch (err) {
-      console.warn('Backend DELETE error, removing locally:', err);
+      console.warn('Backend DELETE fallback to local sync:', err);
       const updated = documents.filter((d) => d.id !== id);
       setDocuments(updated);
       localStorage.setItem('docusync_documents', JSON.stringify(updated));
-      showToast(`Document "${title}" removed`, 'success');
+      showToast(`Document "${title}" deleted locally`, 'success');
     }
   };
 
-  // Filtered documents
   const filteredDocs = documents.filter((doc) => {
     const matchesDept = selectedDept === 'All' || doc.department?.toLowerCase() === selectedDept.toLowerCase();
     const query = searchQuery.toLowerCase();
@@ -208,23 +201,23 @@ const Documents = () => {
     return matchesDept && matchesQuery;
   });
 
-  const getDepartmentBadge = (dept) => {
+  const getDeptColor = (dept) => {
     switch (dept?.toLowerCase()) {
       case 'engineering':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
+        return 'text-cyan-400 bg-cyan-950/60 border-cyan-800/60';
       case 'hr':
-        return 'bg-purple-50 text-purple-700 border-purple-200';
+        return 'text-purple-400 bg-purple-950/60 border-purple-800/60';
       case 'sales':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        return 'text-emerald-400 bg-emerald-950/60 border-emerald-800/60';
       case 'legal':
-        return 'bg-amber-50 text-amber-700 border-amber-200';
+        return 'text-amber-400 bg-amber-950/60 border-amber-800/60';
       default:
-        return 'bg-slate-50 text-slate-700 border-slate-200';
+        return 'text-blue-400 bg-blue-950/60 border-blue-800/60';
     }
   };
 
   const formatDate = (isoString) => {
-    if (!isoString) return 'Recently added';
+    if (!isoString) return 'Recently indexed';
     try {
       return new Date(isoString).toLocaleDateString('en-US', {
         year: 'numeric',
@@ -232,39 +225,39 @@ const Documents = () => {
         day: 'numeric'
       });
     } catch {
-      return 'Recently added';
+      return 'Recently indexed';
     }
   };
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-y-auto">
-      {/* Toast Notification */}
+      {/* Toast Alert */}
       {toast && (
-        <div className={`fixed top-5 right-5 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg border text-sm animate-fade-in ${
+        <div className={`fixed top-5 right-5 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-2xl border text-xs font-semibold backdrop-blur-md animate-fade-in ${
           toast.type === 'error'
-            ? 'bg-red-50 border-red-200 text-red-800'
-            : 'bg-emerald-50 border-emerald-200 text-emerald-800'
+            ? 'bg-red-950/90 border-red-800 text-red-200'
+            : 'bg-emerald-950/90 border-emerald-800 text-emerald-200'
         }`}>
-          {toast.type === 'error' ? <AlertCircle className="w-5 h-5 text-red-500 shrink-0" /> : <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />}
-          <span className="font-medium">{toast.message}</span>
+          {toast.type === 'error' ? <AlertCircle className="w-4 h-4 text-red-400 shrink-0" /> : <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />}
+          <span>{toast.message}</span>
         </div>
       )}
 
-      {/* Top Header */}
-      <div className="bg-white border-b border-slate-200 px-8 py-6">
+      {/* Top Controls Header */}
+      <div className="bg-slate-900/40 border-b border-slate-800/80 px-8 py-6 backdrop-blur-md">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-              <BookOpen className="w-7 h-7 text-blue-600" />
-              Enterprise Knowledge Base
+            <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-blue-400" />
+              Organizational Knowledge Base
             </h1>
-            <p className="text-sm text-slate-500 mt-1">
-              Browse, search, and ingest company documents for Gemini RAG indexing
+            <p className="text-xs text-slate-400 mt-1">
+              Browse, search, and ingest company documents for grounded AI Copilot retrieval
             </p>
           </div>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg shadow-sm transition cursor-pointer self-start sm:self-auto"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-blue-600/25 transition cursor-pointer self-start sm:self-auto"
           >
             <Plus className="w-4 h-4" />
             Upload Document
@@ -272,15 +265,15 @@ const Documents = () => {
         </div>
 
         {/* Filter and Search Bar */}
-        <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <div className="mt-5 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
             <input
               type="text"
               placeholder="Search documents by title, content, or tag..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition"
+              className="w-full pl-10 pr-4 py-2 bg-slate-950/60 border border-slate-800 rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
             />
           </div>
 
@@ -292,8 +285,8 @@ const Documents = () => {
                 onClick={() => setSelectedDept(dept)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition cursor-pointer shrink-0 ${
                   selectedDept === dept
-                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/20'
+                    : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:text-white hover:bg-slate-800/80'
                 }`}
               >
                 {dept}
@@ -306,21 +299,37 @@ const Documents = () => {
       {/* Main Content Area */}
       <div className="p-8 flex-1">
         {loading ? (
-          <div className="h-64 flex flex-col items-center justify-center">
-            <div className="w-9 h-9 border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-sm text-slate-500 mt-3 font-medium">Loading documents...</p>
+          /* Loading State: Skeleton shimmer cards */
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {[1, 2, 3].map((n) => (
+              <div key={n} className="rounded-2xl bg-slate-900/40 border border-slate-800/60 p-5 space-y-4 animate-pulse">
+                <div className="flex justify-between items-center">
+                  <div className="h-4 bg-slate-800 rounded w-1/4"></div>
+                  <div className="h-3 bg-slate-800 rounded w-1/5"></div>
+                </div>
+                <div className="h-5 bg-slate-800 rounded w-3/4"></div>
+                <div className="space-y-2">
+                  <div className="h-3 bg-slate-800/60 rounded w-full"></div>
+                  <div className="h-3 bg-slate-800/60 rounded w-5/6"></div>
+                </div>
+                <div className="flex gap-2">
+                  <div className="h-4 bg-slate-800 rounded w-12"></div>
+                  <div className="h-4 bg-slate-800 rounded w-16"></div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : filteredDocs.length === 0 ? (
-          /* Empty state illustration */
-          <div className="h-96 flex flex-col items-center justify-center text-center p-8 bg-white border border-dashed border-slate-300 rounded-2xl">
-            <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
+          /* Empty State Illustration */
+          <div className="h-96 flex flex-col items-center justify-center text-center p-8 rounded-2xl bg-slate-900/30 border border-dashed border-slate-800">
+            <div className="w-16 h-16 rounded-2xl bg-blue-600/10 border border-blue-500/20 text-blue-400 flex items-center justify-center mb-4">
               <FolderOpen className="w-8 h-8" />
             </div>
-            <h3 className="text-lg font-semibold text-slate-800">No documents found</h3>
-            <p className="text-sm text-slate-500 max-w-sm mt-1 mb-5">
+            <h3 className="text-base font-bold text-white">No documents found</h3>
+            <p className="text-xs text-slate-400 max-w-sm mt-1.5 mb-5 leading-relaxed">
               {searchQuery || selectedDept !== 'All'
-                ? "No matching enterprise documents match your search criteria. Try another keyword or department."
-                : "Your knowledge base is currently empty. Upload company handbooks, specs, or sales playbooks to begin."}
+                ? "No matching enterprise documents found for the active filter. Try resetting your search."
+                : "Your knowledge base is empty. Upload company handbooks, compliance policies, or architectural standards to start."}
             </p>
             <button
               onClick={() => {
@@ -331,7 +340,7 @@ const Documents = () => {
                   setIsModalOpen(true);
                 }
               }}
-              className="px-4 py-2 text-sm font-semibold rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition cursor-pointer"
+              className="px-4 py-2 text-xs font-semibold rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30 hover:bg-blue-600/30 transition cursor-pointer"
             >
               {searchQuery || selectedDept !== 'All' ? 'Reset Filters' : 'Add First Document'}
             </button>
@@ -342,24 +351,24 @@ const Documents = () => {
             {filteredDocs.map((doc) => (
               <div
                 key={doc.id}
-                className="bg-white rounded-xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-slate-300 transition-all flex flex-col justify-between overflow-hidden group"
+                className="rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-lg hover:border-slate-700 transition flex flex-col justify-between overflow-hidden group backdrop-blur-md"
               >
                 <div className="p-5">
                   <div className="flex items-start justify-between gap-3 mb-3">
-                    <span className={`text-xs px-2.5 py-1 rounded-md border font-semibold ${getDepartmentBadge(doc.department)}`}>
+                    <span className={`text-[11px] px-2 py-0.5 rounded-md border font-semibold ${getDeptColor(doc.department)}`}>
                       {doc.department}
                     </span>
-                    <span className="text-xs text-slate-400 flex items-center gap-1">
-                      <Calendar className="w-3.5 h-3.5" />
+                    <span className="text-[11px] text-slate-500 flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
                       {formatDate(doc.createdAt)}
                     </span>
                   </div>
 
-                  <h3 className="text-base font-bold text-slate-900 group-hover:text-blue-600 transition leading-snug mb-2">
+                  <h3 className="text-sm font-bold text-white group-hover:text-blue-400 transition leading-snug mb-2">
                     {doc.title}
                   </h3>
 
-                  <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed mb-4">
+                  <p className="text-xs text-slate-400 line-clamp-3 leading-relaxed mb-4">
                     {doc.content}
                   </p>
 
@@ -369,7 +378,7 @@ const Documents = () => {
                       {doc.tags.map((tag, idx) => (
                         <span
                           key={idx}
-                          className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium"
+                          className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md bg-slate-950/70 text-slate-400 border border-slate-800/80 font-medium"
                         >
                           <Tag className="w-2.5 h-2.5" />
                           {tag}
@@ -380,13 +389,14 @@ const Documents = () => {
                 </div>
 
                 {/* Footer action bar */}
-                <div className="px-5 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-[11px] text-slate-400 font-medium">
-                    Indexed for Copilot RAG
+                <div className="px-5 py-3 bg-slate-950/60 border-t border-slate-800/80 flex items-center justify-between">
+                  <span className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-cyan-400" />
+                    Indexed for RAG Grounding
                   </span>
                   <button
                     onClick={() => handleDelete(doc.id, doc.title)}
-                    className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-red-600 font-medium transition cursor-pointer p-1 rounded hover:bg-red-50"
+                    className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-red-400 font-medium transition cursor-pointer p-1 rounded-lg hover:bg-red-950/30"
                     title="Delete document"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -401,16 +411,16 @@ const Documents = () => {
 
       {/* Upload Document Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-lg w-full border border-slate-800 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 py-5 border-b border-slate-800 flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-bold text-slate-900">Upload Knowledge Document</h3>
-                <p className="text-xs text-slate-500">Provide document metadata and text content for AI Copilot grounding</p>
+                <h3 className="text-base font-bold text-white">Upload Knowledge Document</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Ingest company text for grounded AI Copilot answers</p>
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -418,31 +428,31 @@ const Documents = () => {
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Document Title <span className="text-red-500">*</span>
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                  Document Title <span className="text-red-400">*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Employee Handbook 2026 or API Specification"
+                  placeholder="e.g. Employee Handbook 2026 or API Architecture Spec"
                   value={formTitle}
                   onChange={(e) => setFormTitle(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
                     Department Category
                   </label>
                   <select
                     value={formDept}
                     onChange={(e) => setFormDept(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {DEPARTMENTS.filter((d) => d !== 'All').map((dept) => (
-                      <option key={dept} value={dept}>
+                      <option key={dept} value={dept} className="bg-slate-900 text-white">
                         {dept}
                       </option>
                     ))}
@@ -450,7 +460,7 @@ const Documents = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
                     Tags (comma separated)
                   </label>
                   <input
@@ -458,14 +468,14 @@ const Documents = () => {
                     placeholder="Security, SOC2, Cloud"
                     value={formTags}
                     onChange={(e) => setFormTags(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Text Content <span className="text-red-500">*</span>
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                  Text Content <span className="text-red-400">*</span>
                 </label>
                 <textarea
                   required
@@ -473,26 +483,26 @@ const Documents = () => {
                   placeholder="Paste or write the document text content here. The AI Copilot will ground its responses in this knowledge..."
                   value={formContent}
                   onChange={(e) => setFormContent(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white resize-none"
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none leading-relaxed"
                 ></textarea>
               </div>
 
-              <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
+              <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-800">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition cursor-pointer"
+                  className="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg shadow-sm transition disabled:opacity-60 cursor-pointer flex items-center gap-2"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-blue-600/25 transition disabled:opacity-60 cursor-pointer flex items-center gap-2"
                 >
                   {submitting ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                       Indexing...
                     </>
                   ) : (
