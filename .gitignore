@@ -17,3 +17,10 @@ venv.bak/
 # IDEs
 .idea/
 .vscode/
+
+# Node.js
+node_modules/
+dist/
+*.local
+.env
+
